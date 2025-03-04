@@ -28,7 +28,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from "@/utils/supabase/server";
+import { Task } from "@/lib/types";
+import { QueryData } from "@supabase/supabase-js";
+import TaskClient from "./components/taskClient";
+
 export default async function TaskApp() {
+  const supabase = await createClient();
+  // Initial data fetch
+  const filteredTasksQuery = await supabase
+    .from("tasks")
+    .select()
+    .order("created_at", { ascending: false });
+
+  const { data }: { data: Task } = await supabase
+    .from("tasks")
+    .select()
+    .order("created_at", { ascending: false })
+    .then((result) => ({ data: result.data ?? [] }));
+
   return (
     <SidebarProvider>
       {/* Left Sidebar */}
@@ -90,50 +108,8 @@ export default async function TaskApp() {
           <Separator orientation="vertical" className="h-4" />
           <h1 className="text-xl font-semibold">Today</h1>
         </header>
-        <div className="flex">;
-          <div className="p-4 flex-1 w-1/2">
-            <div className="space-y-2">
-              <div className={`p-3 rounded-lg flex items-center gap-3`}>
-                <Checkbox id="task-1" className="border-muted-foreground" />
-                <label htmlFor="task-1" className="font-medium cursor-pointer">
-                  Walk the Dog
-                </label>
-              </div>
-
-              <div className="p-3 rounded-lg flex items-center gap-3">
-                <Checkbox id="task-2" className="border-muted-foreground" />
-                <label htmlFor="task-2" className="font-medium cursor-pointer">
-                  Preparation
-                </label>
-              </div>
-              <div className="p-3 rounded-lg flex items-center gap-3">
-                <Checkbox id="task-2" className="border-muted-foreground" />
-                <label htmlFor="task-2" className="font-medium cursor-pointer">
-                  Preparation
-                </label>
-              </div>
-              
-
-              <div className="p-3 rounded-lg flex items-center gap-3">
-                <Checkbox id="task-3" className="border-muted-foreground" />
-                <label htmlFor="task-3" className="font-medium cursor-pointer">
-                  Getting the Dog Ready
-                </label>
-              </div>
-
-              <div className="p-3 rounded-lg flex items-center gap-3">
-                <Checkbox id="task-4" className="border-muted-foreground" />
-                <label htmlFor="task-4" className="font-medium cursor-pointer">
-                  Make A Saas App
-                </label>
-              </div>
-            </div>
-
-            <button className="mt-4 flex items-center gap-2 text-muted-foreground px-3 py-2">
-              <Plus className="w-4 h-4" />
-              <span>Add task</span>
-            </button>
-          </div>
+        <div className="flex">
+          <TaskClient tasks={data} />
           {/* Right Sidebar - Task Details */}
           <div className="border-l-0 w-1/3">
             <div className="p-0">
