@@ -36,12 +36,7 @@ import TaskClient from "./components/taskClient";
 export default async function TaskApp() {
   const supabase = await createClient();
   // Initial data fetch
-  const filteredTasksQuery = await supabase
-    .from("tasks")
-    .select()
-    .order("created_at", { ascending: false });
-
-  const { data }: { data: Task } = await supabase
+  const { data }: { data: Task[] } = await supabase
     .from("tasks")
     .select()
     .order("created_at", { ascending: false })
@@ -102,76 +97,14 @@ export default async function TaskApp() {
       </Sidebar>
 
       {/* Main Content */}
-      <SidebarInset className="flex flex-col border-r border-[#ebebeb]  ">
+      <SidebarInset className="flex flex-col border-r border-[#ebebeb]  min-h-svh">
         <header className="flex h-14 items-center gap-2 px-4 border-b border-[#ebebeb]">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
           <h1 className="text-xl font-semibold">Today</h1>
         </header>
-        <div className="flex">
-          <TaskClient tasks={data} />
-          {/* Right Sidebar - Task Details */}
-          <div className="border-l-0 w-1/3">
-            <div className="p-0">
-              <header className="p-4 flex justify-between items-center border-b border-[#ebebeb]">
-                <h2 className="text-xl font-semibold">Walk the Dog</h2>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      Improve issue
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator /> */}
-                    <DropdownMenuItem className="w-[296px]">
-                      <WandSparkles size={16} />
-                      <span>Breakdown Item</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </header>
 
-              <div className="p-4 border-b border-[#ebebeb]">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="text-sm">≡</span>
-                  <span className="text-sm">Add Description...</span>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <h3 className="font-semibold mb-4">Subtask</h3>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="subtask-1"
-                      className="border-muted-foreground"
-                    />
-                    <label htmlFor="subtask-1" className="cursor-pointer">
-                      Preparation
-                    </label>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="subtask-2"
-                      className="border-muted-foreground"
-                    />
-                    <label htmlFor="subtask-2" className="cursor-pointer">
-                      Getting the Dog Ready
-                    </label>
-                  </div>
-                </div>
-
-                <button className="mt-4 flex items-center gap-2 text-muted-foreground px-1 py-1">
-                  <Plus className="w-4 h-4" />
-                  <span>Add task</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TaskClient tasks={data} />
       </SidebarInset>
     </SidebarProvider>
   );
