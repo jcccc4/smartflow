@@ -58,6 +58,7 @@ export type Database = {
           done: boolean | null
           due_date: string | null
           id: number
+          parent_task_id: number | null
           title: string
           user_id: string
         }
@@ -67,6 +68,7 @@ export type Database = {
           done?: boolean | null
           due_date?: string | null
           id?: number
+          parent_task_id?: number | null
           title: string
           user_id: string
         }
@@ -76,10 +78,19 @@ export type Database = {
           done?: boolean | null
           due_date?: string | null
           id?: number
+          parent_task_id?: number | null
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

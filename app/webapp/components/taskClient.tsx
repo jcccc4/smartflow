@@ -8,41 +8,97 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Task } from "@/lib/types";
-import { Plus, WandSparkles } from "lucide-react";
-import React, { JSX, useState } from "react";
+import { WandSparkles } from "lucide-react";
+import React, { JSX, useEffect, useRef, useState } from "react";
 import AddTask from "./addTask";
+import { createClient } from "@/utils/supabase/client";
+import TaskItem from "./taskItem";
+import SubtaskItem from "./subTaskItem";
 
-type Props = { tasks: Task[] };
+type Props = { taskList: Task[] };
 
-export default function TaskClient({ tasks }: Props): JSX.Element {
-  const [selectedTask, setSelectedTask] = useState<Task>();
+export default function TaskClient({ taskList }: Props): JSX.Element {
+  const [tasks, setTasks] = useState<Task[]>(taskList);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+  useEffect(() => {
+    const supabase = createClient();
+    const fetchTasks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tasks")
+          .select()
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        setTasks(data || []);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const channelA = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tasks",
+        },
+        () => {
+          console.log("test");
+          fetchTasks();
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channelA);
+    };
+  }, []);
+
+  function renderTaskHierarchy(tasks: Task[], parentId: number | null = null) {
+    // Get tasks that belong to current parent
+    const currentLevelTasks = tasks.filter(
+      (task) => task.parent_task_id === parentId
+    );
+
+    return currentLevelTasks.map((task) => (
+      <div key={task.id}>
+        <TaskItem
+          tasks={tasks}
+          taskDetails={task}
+          selectedTask={selectedTask}
+          setSelectedTask={setSelectedTask}
+          setTasks={setTasks}
+        />
+
+        <div className="pl-4">{renderTaskHierarchy(tasks, task.id)}</div>
+      </div>
+    ));
+  }
+
+  function renderSubtask() {
+    return tasks
+      .filter((task) => task.parent_task_id === selectedTask?.id)
+      .map((task) => (
+        <SubtaskItem
+          key={task.id}
+          tasks={tasks}
+          taskDetails={task}
+          setTasks={setTasks}
+        />
+      ));
+  }
   return (
     <div className="flex h-full">
-      <div className="p-4 flex-1">
-        {tasks.map((task) => (
-          <div
-            key={task.id}
-            className={`flex items-center gap-2 
-              transition-all duration-200 ease-in-out
-              ${selectedTask?.id === task.id ? "rounded-sm bg-[#b4d1fb]" : ""}`}
-            onClick={() => setSelectedTask(task)}
-          >
-            <div className="p-3 rounded-lg flex items-center gap-3">
-              <Checkbox
-                id={String(task.id)}
-                className="border-muted-foreground"
-              />
-              <label
-                htmlFor={String(task.id)}
-                className="font-medium cursor-pointer"
-              >
-                {task.title}
-              </label>
-            </div>
-          </div>
-        ))}
-        <AddTask />
+      <div className="p-4 flex-1 flex flex-col gap-0">
+        {renderTaskHierarchy(tasks)}
+        <div className="px-6">
+          <AddTask />
+        </div>
       </div>
       {/* Right Sidebar - Task Details */}
       <div className="border-l border-solid w-1/3 ">
@@ -75,29 +131,7 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
             <div className="p-4">
               <h3 className="font-semibold mb-4">Subtask</h3>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="subtask-1"
-                    className="border-muted-foreground"
-                  />
-                  <label htmlFor="subtask-1" className="cursor-pointer">
-                    Preparation
-                  </label>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="subtask-2"
-                    className="border-muted-foreground"
-                  />
-                  <label htmlFor="subtask-2" className="cursor-pointer">
-                    Getting the Dog Ready
-                  </label>
-                </div>
-              </div>
-
-              <AddTask />
+              {renderSubtask()}
             </div>
           </div>
         ) : null}

@@ -7,8 +7,6 @@ import {
   WandSparkles,
 } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -22,24 +20,18 @@ import {
   SidebarTrigger,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { createClient } from "@/utils/supabase/server";
-import { Task } from "@/lib/types";
-import { QueryData } from "@supabase/supabase-js";
 import TaskClient from "./components/taskClient";
+import { Task } from "@/lib/types";
 
 export default async function TaskApp() {
   const supabase = await createClient();
-  // Initial data fetch
+
   const { data }: { data: Task[] } = await supabase
     .from("tasks")
     .select()
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: true })
     .then((result) => ({ data: result.data ?? [] }));
 
   return (
@@ -104,7 +96,7 @@ export default async function TaskApp() {
           <h1 className="text-xl font-semibold">Today</h1>
         </header>
 
-        <TaskClient tasks={data} />
+        <TaskClient taskList={data} />
       </SidebarInset>
     </SidebarProvider>
   );
