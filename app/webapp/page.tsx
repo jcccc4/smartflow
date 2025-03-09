@@ -3,8 +3,6 @@ import {
   ChevronDown,
   Inbox,
   LayoutGrid,
-  Plus,
-  WandSparkles,
 } from "lucide-react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";

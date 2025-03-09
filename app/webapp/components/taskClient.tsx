@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,11 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Task } from "@/lib/types";
 import { WandSparkles } from "lucide-react";
-import React, { JSX, useEffect, useRef, useState } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import AddTask from "./addTask";
 import { createClient } from "@/utils/supabase/client";
-import TaskItem from "./taskItem";
-import SubtaskItem from "./subTaskItem";
+import TaskItem from "./task-items/taskItem";
+import SubtaskItem from "./task-items/subTaskItem";
 
 type Props = { taskList: Task[] };
 
@@ -31,6 +30,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
           .from("tasks")
           .select()
           .order("created_at", { ascending: true });
+        console.log("data", data);
         if (error) throw error;
         setTasks(data || []);
       } catch (err) {
@@ -44,7 +44,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "tasks",
         },

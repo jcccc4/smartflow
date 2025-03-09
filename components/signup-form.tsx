@@ -7,10 +7,7 @@ import { signup } from "@/utils/actions/actions";
 import Link from "next/link";
 import GoogleSignIn from "./google-signin-button";
 
-export function SignUpForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function SignUpForm() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
       <Card className="w-full max-w-md mx-auto">

@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Task } from "@/lib/types";
-import { createClient } from "@/utils/supabase/client";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 import { addTask } from "../actions/actions";

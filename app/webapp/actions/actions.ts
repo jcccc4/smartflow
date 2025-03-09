@@ -1,3 +1,4 @@
+import { Task } from "@/lib/types";
 import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
@@ -7,7 +8,7 @@ export const addTask = async (
   parentTaskId: number | null = null
 ) => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("tasks")
       .insert([
         {
@@ -28,7 +29,7 @@ export const addTask = async (
 
 export const addSubtask = async (parentTaskId: number) => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("tasks")
       .insert([
         {
@@ -47,18 +48,27 @@ export const addSubtask = async (parentTaskId: number) => {
   }
 };
 
-export const handleUpdate = async (newTitle: string, id: number) => {
+export const handleUpdate = async (task: Task) => {
   try {
     const supabase = createClient();
     const { error } = await supabase
       .from("tasks")
-      .update({ title: newTitle })
-      .eq("id", id);
+      .update({ title: task.title })
+      .eq("id", task.id);
 
     if (error) throw error;
-    
   } catch (err) {
     console.error("Error updating task:", err);
-    // Revert to original title on error
+  }
+};
+
+export const deleteTask = async (id: number) => {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from("tasks").delete().eq("id", id);
+
+    if (error) throw error;
+  } catch (err) {
+    console.error("Error deleting task:", err);
   }
 };
