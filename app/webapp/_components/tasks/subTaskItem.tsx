@@ -8,37 +8,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Task } from "@/lib/types";
+
 import { Ellipsis, Eraser, GripVertical, ListTree } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import useDebounce from "@/hooks/use-debounce";
-import {
-  handleAddSubtask,
-  handleKeyDown,
-  updateTaskTitle,
-} from "./utils/utils";
-import { deleteTask } from "../../actions/actions";
+import { deleteTask } from "../../_actions/tasks";
+import { handleKeyDown } from "./handlers/keyboardEvents";
+import { Task } from "@/lib/types";
+import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
 
 type Props = {
   tasks: Task[];
   taskDetails: Task;
-  selectedTask: Task | null;
-  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 };
-export default function TaskItem({
-  tasks,
-  taskDetails,
-  selectedTask,
-  setSelectedTask,
-}: Props) {
+export default function SubtaskItem({ taskDetails }: Props) {
   const [editedTitle, setEditedTitle] = useState(taskDetails.title);
   const debouncedTitle = useDebounce(editedTitle, 500); // 500ms delay
 
   // Add useEffect to handle debounced updates
   useEffect(() => {
     if (debouncedTitle !== taskDetails.title && debouncedTitle.trim()) {
-      updateTaskTitle(taskDetails, debouncedTitle, setSelectedTask);
+      const updatedTask: Task = {
+        ...taskDetails,
+        title: debouncedTitle,
+      };
+      debouncedTaskTitle(updatedTask);
     }
   }, [debouncedTitle]);
 
@@ -52,13 +46,7 @@ export default function TaskItem({
       <div
         key={taskDetails.id}
         className={`flex flex-1 items-center gap-2 
-              transition-all duration-200 ease-in-out
-              ${
-                selectedTask?.id === taskDetails.id
-                  ? "rounded-sm bg-[#E7F0FE]"
-                  : ""
-              }`}
-        onClick={() => setSelectedTask(taskDetails)}
+              transition-all duration-200 ease-in-out`}
       >
         <div className="px-3 rounded-lg flex flex-1 items-center gap-3">
           <Checkbox
@@ -70,24 +58,20 @@ export default function TaskItem({
             type="text"
             value={editedTitle}
             onChange={(e) => {
-              const newText = e.target.value.trim();
-              const updatedTask: Task = {
-                ...taskDetails,
-                title: newText,
-              };
-              setSelectedTask(updatedTask);
-              setEditedTitle(newText);
+              setEditedTitle(e.target.value);
             }}
             onKeyDown={(e) =>
               handleKeyDown(e, {
                 editedTitle,
                 taskDetails,
-                setSelectedTask,
               })
             }
             onBlur={(e) => {
               const newText = e.target.value.trim();
-              updateTaskTitle(taskDetails, newText);
+              if (newText === taskDetails.title) {
+                return;
+              }
+
               setEditedTitle(newText);
             }}
             className="outline-none bg-transparent flex-1 h-full p-3 border-0"
@@ -103,9 +87,7 @@ export default function TaskItem({
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
-          <DropdownMenuItem
-            onClick={() => handleAddSubtask(tasks, taskDetails.id)}
-          >
+          <DropdownMenuItem>
             <ListTree size={16} />
             <span>Add Subtask</span>
           </DropdownMenuItem>

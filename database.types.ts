@@ -55,7 +55,7 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
-          done: boolean | null
+          done: boolean
           due_date: string | null
           id: number
           parent_task_id: number | null
@@ -65,7 +65,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          done?: boolean | null
+          done?: boolean
           due_date?: string | null
           id?: number
           parent_task_id?: number | null
@@ -75,7 +75,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
-          done?: boolean | null
+          done?: boolean
           due_date?: string | null
           id?: number
           parent_task_id?: number | null

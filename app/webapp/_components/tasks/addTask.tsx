@@ -1,14 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Task } from "@/lib/types";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
-import { addTask } from "../actions/actions";
+import { createTask } from "../../_actions/tasks";
 
-type Props = {
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
-};
 export default function AddTask() {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -16,7 +12,7 @@ export default function AddTask() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && inputValue.trim()) {
       e.preventDefault();
-      addTask(inputValue);
+      createTask(inputValue);
       setInputValue("");
     }
   };
@@ -73,7 +69,7 @@ export default function AddTask() {
               disabled={inputValue.length === 0}
               onClick={() => {
                 console.log("test");
-                addTask(inputValue);
+                createTask(inputValue);
                 setInputValue("");
                 setIsFocused(false);
               }}

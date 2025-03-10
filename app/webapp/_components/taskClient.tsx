@@ -9,10 +9,10 @@ import {
 import { Task } from "@/lib/types";
 import { WandSparkles } from "lucide-react";
 import React, { JSX, useEffect, useState } from "react";
-import AddTask from "./addTask";
+import AddTask from "./tasks/addTask";
 import { createClient } from "@/utils/supabase/client";
-import TaskItem from "./task-items/taskItem";
-import SubtaskItem from "./task-items/subTaskItem";
+import TaskItem from "./tasks/taskItem";
+import SubtaskItem from "./tasks/subTaskItem";
 
 type Props = { taskList: Task[] };
 
@@ -72,7 +72,6 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
           taskDetails={task}
           selectedTask={selectedTask}
           setSelectedTask={setSelectedTask}
-          setTasks={setTasks}
         />
 
         <div className="pl-4">{renderTaskHierarchy(tasks, task.id)}</div>
@@ -88,7 +87,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
           key={task.id}
           tasks={tasks}
           taskDetails={task}
-          setTasks={setTasks}
+     
         />
       ));
   }

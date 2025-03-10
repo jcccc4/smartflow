@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { createClient } from "@/utils/supabase/server";
-import TaskClient from "./components/taskClient";
+import TaskClient from "./_components/taskClient";
 import { Task } from "@/lib/types";
 
 export default async function TaskApp() {
@@ -34,7 +34,6 @@ export default async function TaskApp() {
 
   return (
     <SidebarProvider>
-      {/* Left Sidebar */}
       <Sidebar className="border-r-0 group/sidebaR">
         <SidebarHeader className="p-0">
           <div className="p-4 flex items-center gap-3">
@@ -86,7 +85,6 @@ export default async function TaskApp() {
         <SidebarRail className="group-hover/sidebar:after:bg-border" />
       </Sidebar>
 
-      {/* Main Content */}
       <SidebarInset className="flex flex-col border-r border-[#ebebeb]  min-h-svh">
         <header className="flex h-14 items-center gap-2 px-4 border-b border-[#ebebeb]">
           <SidebarTrigger />
