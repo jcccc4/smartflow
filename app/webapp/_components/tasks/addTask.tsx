@@ -2,18 +2,48 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import React, { useState } from "react";
+import React, { startTransition, useState } from "react";
 import { createTask } from "../../_actions/tasks";
-
-export default function AddTask() {
+import { OptimisticValueProp } from "@/lib/types";
+type Props = { setOptimisticTaskState: (action: OptimisticValueProp) => void };
+export default function AddTask({ setOptimisticTaskState }: Props) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
+  const handleSubmit = async () => {
+    if (!inputValue.trim()) return;
+
+    startTransition(() => {
+      // Wrap optimistic update in startTransition
+      setOptimisticTaskState({
+        type: "create",
+        task: {
+          id: Math.random(),
+          title: inputValue,
+          parent_task_id: null,
+          created_at: new Date().toISOString(),
+          description: null,
+          done: false,
+          due_date: null,
+          user_id: "pending",
+        },
+      });
+    });
+
+    try {
+      await createTask(inputValue);
+      setInputValue("");
+      setIsFocused(false);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+      // You might want to handle the error state here
+      // and potentially revert the optimistic update
+    }
+  };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && inputValue.trim()) {
       e.preventDefault();
-      createTask(inputValue);
-      setInputValue("");
+      handleSubmit();
     }
   };
 
@@ -67,12 +97,7 @@ export default function AddTask() {
               size={"sm"}
               className={"transition-all duration-200 ease-in-out"}
               disabled={inputValue.length === 0}
-              onClick={() => {
-                console.log("test");
-                createTask(inputValue);
-                setInputValue("");
-                setIsFocused(false);
-              }}
+              onClick={handleSubmit}
             >
               Add Task
             </Button>

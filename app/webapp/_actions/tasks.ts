@@ -1,42 +1,40 @@
 "use server";
 
-import { OptimisticValueProp, Task } from "@/lib/types";
+import { Task } from "@/lib/types";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function createTask(title: string) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const supabase = await createClient();
 
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
+  // Get the current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
-      .from("tasks")
-      .insert([
-        {
-          title,
-          done: false,
-          user_id: user.id,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) throw error;
-    revalidatePath("/tasks");
-    return { data, error: null };
-  } catch (err) {
-    console.error("Error creating task:", err);
-    return {
-      data: null,
-      error: err instanceof Error ? err.message : "An error occurred",
-    };
+  if (!user) {
+    throw new Error("User not authenticated");
   }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert([
+      {
+        title,
+        user_id: user.id,
+        done: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/tasks"); // Adjust the path as needed
+  return data;
 }
 
 export async function addSubtask(parentTaskId: number) {
@@ -106,7 +104,7 @@ export async function updateTask(task: Task) {
   }
 }
 
-export async function deleteTask(id: number) {
+export async function deleteTask({ id }: { id: number }) {
   try {
     const supabase = await createClient();
     const {

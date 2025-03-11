@@ -1,7 +1,8 @@
 import { createClient } from "@/utils/supabase/client";
 
 import { createTask, deleteTask } from "@/app/webapp/_actions/tasks";
-import { Task } from "@/lib/types";
+import { OptimisticValueProp, Task } from "@/lib/types";
+import { startTransition } from "react";
 
 export const handleKeyDown = async (
   e: React.KeyboardEvent<HTMLInputElement>,
@@ -9,10 +10,11 @@ export const handleKeyDown = async (
   {
     editedTitle,
     taskDetails,
+    setOptimisticTaskState,
   }: {
     editedTitle: string;
     taskDetails: Task;
-    setSelectedTask?: React.Dispatch<React.SetStateAction<Task | null>>;
+    setOptimisticTaskState: (action: OptimisticValueProp) => void;
   }
 ) => {
   switch (e.key) {
@@ -27,6 +29,17 @@ export const handleKeyDown = async (
         console.error("No user found");
         return;
       }
+      startTransition(() => {
+        setOptimisticTaskState({
+          type: "create",
+          task: {
+            ...taskDetails,
+            id: Math.random(),
+            title: "",
+            user_id: user.id,
+          },
+        });
+      });
 
       createTask("");
 
@@ -34,16 +47,13 @@ export const handleKeyDown = async (
 
     case "Backspace":
       if (!editedTitle) {
-        try {
-          const { error } = await createClient()
-            .from("tasks")
-            .delete()
-            .eq("id", taskDetails.id);
-
-          if (error) throw error;
-        } catch (err) {
-          console.error("Error deleting task:", err);
-        }
+        startTransition(() => {
+          setOptimisticTaskState({
+            type: "delete",
+            task: taskDetails,
+          });
+        });
+        deleteTask(taskDetails);
       }
       break;
 

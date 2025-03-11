@@ -22,12 +22,14 @@ type Props = {
   taskDetails: Task;
   selectedTask: Task | null;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 export default function TaskItem({
   tasks,
   taskDetails,
   selectedTask,
   setSelectedTask,
+  setOptimisticTaskState,
 }: Props) {
   const [editedTitle, setEditedTitle] = useState(taskDetails.title);
   const debouncedTitle = useDebounce(editedTitle, 500); // 500ms delay
@@ -83,7 +85,7 @@ export default function TaskItem({
               handleKeyDown(e, {
                 editedTitle,
                 taskDetails,
-                setSelectedTask,
+                setOptimisticTaskState,
               })
             }
             onBlur={(e) => {

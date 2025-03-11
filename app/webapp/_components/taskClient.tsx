@@ -6,58 +6,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Task } from "@/lib/types";
+import { OptimisticValueProp, Task } from "@/lib/types";
 import { WandSparkles } from "lucide-react";
-import React, { JSX, useEffect, useState } from "react";
+import React, { JSX, useOptimistic, useState } from "react";
 import AddTask from "./tasks/addTask";
-import { createClient } from "@/utils/supabase/client";
 import TaskItem from "./tasks/taskItem";
 import SubtaskItem from "./tasks/subTaskItem";
 
 type Props = { taskList: Task[] };
 
 export default function TaskClient({ taskList }: Props): JSX.Element {
-  const [tasks, setTasks] = useState<Task[]>(taskList);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    const fetchTasks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("tasks")
-          .select()
-          .order("created_at", { ascending: true });
-        console.log("data", data);
-        if (error) throw error;
-        setTasks(data || []);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
+  const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
+    taskList,
+    (currentState: Task[], optimisticValue: OptimisticValueProp) => {
+      switch (optimisticValue.type) {
+        case "create":
+          return [...currentState, optimisticValue.task];
+        case "update":
+          return currentState.map((task) => {
+            if (task.id === optimisticValue.task.id) {
+              return {
+                ...task,
+                ...optimisticValue.task,
+              };
+            }
+            return task;
+          });
+        case "delete":
+          return currentState.filter(
+            (task) => task.id !== optimisticValue.task.id
+          );
+        default:
+          return currentState;
       }
-    };
-    const channelA = supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-        },
-        () => {
-          console.log("test");
-          fetchTasks();
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channelA);
-    };
-  }, []);
+    }
+  );
 
   function renderTaskHierarchy(tasks: Task[], parentId: number | null = null) {
     // Get tasks that belong to current parent
@@ -72,6 +58,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
           taskDetails={task}
           selectedTask={selectedTask}
           setSelectedTask={setSelectedTask}
+          setOptimisticTaskState={setOptimisticTaskState}
         />
 
         <div className="pl-4">{renderTaskHierarchy(tasks, task.id)}</div>
@@ -80,23 +67,22 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
   }
 
   function renderSubtask() {
-    return tasks
+    return optimisticTaskState
       .filter((task) => task.parent_task_id === selectedTask?.id)
       .map((task) => (
         <SubtaskItem
           key={task.id}
-          tasks={tasks}
+          tasks={optimisticTaskState}
           taskDetails={task}
-     
         />
       ));
   }
   return (
     <div className="flex h-full">
       <div className="p-4 flex-1 flex flex-col gap-0">
-        {renderTaskHierarchy(tasks)}
+        {renderTaskHierarchy(optimisticTaskState)}
         <div className="px-6">
-          <AddTask />
+          <AddTask setOptimisticTaskState={setOptimisticTaskState} />
         </div>
       </div>
       {/* Right Sidebar - Task Details */}
