@@ -10,12 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import { Ellipsis, Eraser, GripVertical, ListTree } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { startTransition, useEffect, useState } from "react";
 import useDebounce from "@/hooks/use-debounce";
 import { deleteTask } from "../../_actions/tasks";
 import { handleKeyDown } from "./handlers/keyboardEvents";
 import { handleAddSubtask } from "./handlers/subtaskHandler";
 import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
+import { start } from "repl";
 
 type Props = {
   tasks: Task[];
@@ -78,6 +79,13 @@ export default function TaskItem({
                 ...taskDetails,
                 title: newText,
               };
+              startTransition(() => {
+                setOptimisticTaskState({
+                  type: "update",
+                  task: updatedTask,
+                });
+              });
+
               setSelectedTask(updatedTask);
               setEditedTitle(newText);
             }}
@@ -122,7 +130,12 @@ export default function TaskItem({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive"
-            onClick={() => deleteTask(taskDetails.id)}
+            onClick={() => {
+              startTransition(() => {
+                setOptimisticTaskState({ type: "delete", task: taskDetails });
+              });
+              deleteTask(taskDetails);
+            }}
           >
             <Eraser size={16} />
             <span>Delete</span>

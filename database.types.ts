@@ -57,8 +57,8 @@ export type Database = {
           description: string | null
           done: boolean
           due_date: string | null
-          id: number
-          parent_task_id: number | null
+          id: string
+          parent_task_id: string | null
           title: string
           user_id: string
         }
@@ -67,8 +67,8 @@ export type Database = {
           description?: string | null
           done?: boolean
           due_date?: string | null
-          id?: number
-          parent_task_id?: number | null
+          id: string
+          parent_task_id?: string | null
           title: string
           user_id: string
         }
@@ -77,8 +77,8 @@ export type Database = {
           description?: string | null
           done?: boolean
           due_date?: string | null
-          id?: number
-          parent_task_id?: number | null
+          id?: string
+          parent_task_id?: string | null
           title?: string
           user_id?: string
         }

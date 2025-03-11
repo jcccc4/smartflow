@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getTaskDepth(tasks: Task[], taskId: number | null): number {
+export function getTaskDepth(tasks: Task[], taskId: string | null): number {
   // Base case: if no parent, we're at the root (depth 0)
   if (taskId === null) {
     return 0;
@@ -24,6 +24,6 @@ export function getTaskDepth(tasks: Task[], taskId: number | null): number {
   return 1 + getTaskDepth(tasks, parentTask.parent_task_id);
 }
 
-export function canAddTaskAtLevel(tasks: Task[], parentTaskId: number | null): boolean {
+export function canAddTaskAtLevel(tasks: Task[], parentTaskId: string | null): boolean {
   return getTaskDepth(tasks, parentTaskId) < 4;
 }

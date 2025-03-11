@@ -45,7 +45,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
     }
   );
 
-  function renderTaskHierarchy(tasks: Task[], parentId: number | null = null) {
+  function renderTaskHierarchy(tasks: Task[], parentId: string | null = null) {
     // Get tasks that belong to current parent
     const currentLevelTasks = tasks.filter(
       (task) => task.parent_task_id === parentId
@@ -72,8 +72,8 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       .map((task) => (
         <SubtaskItem
           key={task.id}
-          tasks={optimisticTaskState}
           taskDetails={task}
+          setOptimisticTaskState={setOptimisticTaskState}
         />
       ));
   }

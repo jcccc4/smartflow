@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import React, { startTransition, useState } from "react";
+import { startTransition, useState } from "react";
 import { createTask } from "../../_actions/tasks";
 import { OptimisticValueProp } from "@/lib/types";
+import { v4 as uuidv4 } from "uuid";
 type Props = { setOptimisticTaskState: (action: OptimisticValueProp) => void };
 export default function AddTask({ setOptimisticTaskState }: Props) {
   const [inputValue, setInputValue] = useState("");
@@ -12,26 +13,26 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) return;
-
+    const task = {
+      id: uuidv4(),
+      title: inputValue,
+      parent_task_id: null,
+      created_at: new Date().toISOString(),
+      description: null,
+      done: false,
+      due_date: null,
+      user_id: "pending",
+    };
     startTransition(() => {
       // Wrap optimistic update in startTransition
       setOptimisticTaskState({
         type: "create",
-        task: {
-          id: Math.random(),
-          title: inputValue,
-          parent_task_id: null,
-          created_at: new Date().toISOString(),
-          description: null,
-          done: false,
-          due_date: null,
-          user_id: "pending",
-        },
+        task,
       });
     });
 
     try {
-      await createTask(inputValue);
+      await createTask(task);
       setInputValue("");
       setIsFocused(false);
     } catch (error) {

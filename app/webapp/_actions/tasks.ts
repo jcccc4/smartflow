@@ -3,8 +3,8 @@
 import { Task } from "@/lib/types";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-
-export async function createTask(title: string) {
+import { v4 as uuidv4 } from "uuid";
+export async function createTask({ id, title }: { id: string; title: string }) {
   const supabase = await createClient();
 
   // Get the current user
@@ -20,6 +20,7 @@ export async function createTask(title: string) {
     .from("tasks")
     .insert([
       {
+        id,
         title,
         user_id: user.id,
         done: false,
@@ -37,7 +38,13 @@ export async function createTask(title: string) {
   return data;
 }
 
-export async function addSubtask(parentTaskId: number) {
+export async function addSubtask({
+  id,
+  parentTaskId,
+}: {
+  id: string;
+  parentTaskId: string;
+}) {
   try {
     const supabase = await createClient();
     const {
@@ -52,6 +59,7 @@ export async function addSubtask(parentTaskId: number) {
       .from("tasks")
       .insert([
         {
+          id,
           title: "",
           parent_task_id: parentTaskId,
           done: false,
@@ -104,7 +112,7 @@ export async function updateTask(task: Task) {
   }
 }
 
-export async function deleteTask({ id }: { id: number }) {
+export async function deleteTask({ id }: { id: string }) {
   try {
     const supabase = await createClient();
     const {

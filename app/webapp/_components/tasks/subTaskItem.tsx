@@ -14,14 +14,18 @@ import React, { useEffect, useState } from "react";
 import useDebounce from "@/hooks/use-debounce";
 import { deleteTask } from "../../_actions/tasks";
 import { handleKeyDown } from "./handlers/keyboardEvents";
-import { Task } from "@/lib/types";
+import { OptimisticValueProp, Task } from "@/lib/types";
 import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
 
 type Props = {
-  tasks: Task[];
   taskDetails: Task;
+  setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
-export default function SubtaskItem({ taskDetails }: Props) {
+
+export default function SubtaskItem({
+  taskDetails,
+  setOptimisticTaskState,
+}: Props) {
   const [editedTitle, setEditedTitle] = useState(taskDetails.title);
   const debouncedTitle = useDebounce(editedTitle, 500); // 500ms delay
 
@@ -64,6 +68,7 @@ export default function SubtaskItem({ taskDetails }: Props) {
               handleKeyDown(e, {
                 editedTitle,
                 taskDetails,
+                setOptimisticTaskState,
               })
             }
             onBlur={(e) => {
@@ -94,7 +99,7 @@ export default function SubtaskItem({ taskDetails }: Props) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive"
-            onClick={() => deleteTask(taskDetails.id)}
+            onClick={() => deleteTask(taskDetails)}
           >
             <Eraser size={16} />
             <span>Delete</span>
