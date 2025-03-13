@@ -4,10 +4,10 @@ import { Task } from "@/lib/types";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { v4 as uuidv4 } from "uuid";
-export async function createTask({ id, title }: { id: string; title: string }) {
+
+export async function createTasks(taskInput: Task | Task[]) {
   const supabase = await createClient();
 
-  // Get the current user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -16,35 +16,33 @@ export async function createTask({ id, title }: { id: string; title: string }) {
     throw new Error("User not authenticated");
   }
 
+  // Convert single task to array if needed
+  const tasksArray = Array.isArray(taskInput) ? taskInput : [taskInput];
+
+  // Prepare the tasks array with required fields
+  const tasksToCreate = tasksArray.map((task) => ({
+    id: task.id,
+    title: task.title,
+    parent_task_id: task.parent_task_id,
+    user_id: user.id,
+    done: false,
+    created_at: new Date().toISOString(),
+  }));
+
   const { data, error } = await supabase
     .from("tasks")
-    .insert([
-      {
-        id,
-        title,
-        user_id: user.id,
-        done: false,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select()
-    .single();
+    .insert(tasksToCreate)
+    .select();
 
   if (error) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/tasks"); // Adjust the path as needed
+  revalidatePath("/tasks");
   return data;
 }
 
-export async function addSubtask({
-  id,
-  parentTaskId,
-}: {
-  id: string;
-  parentTaskId: string;
-}) {
+export async function addSubtask(parentTaskId: string) {
   try {
     const supabase = await createClient();
     const {
@@ -59,7 +57,7 @@ export async function addSubtask({
       .from("tasks")
       .insert([
         {
-          id,
+          id: uuidv4(),
           title: "",
           parent_task_id: parentTaskId,
           done: false,

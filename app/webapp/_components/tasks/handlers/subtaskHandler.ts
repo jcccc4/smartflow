@@ -9,8 +9,5 @@ export async function handleAddSubtask(tasks: Task[], parentTaskId: string) {
     return;
   }
 
-  addSubtask({
-    id: uuidv4(),
-    parentTaskId, // Note the property name change
-  });
+  addSubtask(parentTaskId);
 }

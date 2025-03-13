@@ -16,30 +16,29 @@ import { deleteTask } from "../../_actions/tasks";
 import { handleKeyDown } from "./handlers/keyboardEvents";
 import { handleAddSubtask } from "./handlers/subtaskHandler";
 import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
-import { start } from "repl";
 
 type Props = {
   tasks: Task[];
-  taskDetails: Task;
+  task: Task;
   selectedTask: Task | null;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 export default function TaskItem({
   tasks,
-  taskDetails,
+  task,
   selectedTask,
   setSelectedTask,
   setOptimisticTaskState,
 }: Props) {
-  const [editedTitle, setEditedTitle] = useState(taskDetails.title);
+  const [editedTitle, setEditedTitle] = useState(task.title);
   const debouncedTitle = useDebounce(editedTitle, 500); // 500ms delay
 
   // Add useEffect to handle debounced updates
   useEffect(() => {
-    if (debouncedTitle !== taskDetails.title && debouncedTitle.trim()) {
+    if (debouncedTitle !== task.title && debouncedTitle.trim()) {
       const updatedTask: Task = {
-        ...taskDetails,
+        ...task,
         title: debouncedTitle,
       };
       debouncedTaskTitle(updatedTask);
@@ -54,19 +53,19 @@ export default function TaskItem({
       />
 
       <div
-        key={taskDetails.id}
+        key={task.id}
         className={`flex flex-1 items-center gap-2 
               transition-all duration-200 ease-in-out
               ${
-                selectedTask?.id === taskDetails.id
+                selectedTask?.id === task.id
                   ? "rounded-sm bg-[#E7F0FE]"
                   : ""
               }`}
-        onClick={() => setSelectedTask(taskDetails)}
+        onClick={() => setSelectedTask(task)}
       >
         <div className="px-3 rounded-lg flex flex-1 items-center gap-3">
           <Checkbox
-            id={String(taskDetails.id)}
+            id={String(task.id)}
             className="border-muted-foreground"
           />
 
@@ -74,10 +73,10 @@ export default function TaskItem({
             type="text"
             value={editedTitle}
             onChange={(e) => {
-              const newText = e.target.value.trim();
+              const newText = e.target.value;
               const updatedTask: Task = {
-                ...taskDetails,
-                title: newText,
+                ...task,
+                title: newText.trim(),
               };
               startTransition(() => {
                 setOptimisticTaskState({
@@ -92,17 +91,17 @@ export default function TaskItem({
             onKeyDown={(e) =>
               handleKeyDown(e, {
                 editedTitle,
-                taskDetails,
+                task,
                 setOptimisticTaskState,
               })
             }
             onBlur={(e) => {
               const newText = e.target.value.trim();
-              if (newText === taskDetails.title) {
+              if (newText === task.title) {
                 return;
               }
               const updatedTask: Task = {
-                ...taskDetails,
+                ...task,
                 title: newText,
               };
               setSelectedTask(updatedTask);
@@ -122,7 +121,7 @@ export default function TaskItem({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
           <DropdownMenuItem
-            onClick={() => handleAddSubtask(tasks, taskDetails.id)}
+            onClick={() => handleAddSubtask(tasks, task.id)}
           >
             <ListTree size={16} />
             <span>Add Subtask</span>
@@ -132,9 +131,9 @@ export default function TaskItem({
             className="text-destructive"
             onClick={() => {
               startTransition(() => {
-                setOptimisticTaskState({ type: "delete", task: taskDetails });
+                setOptimisticTaskState({ type: "delete", task: task });
               });
-              deleteTask(taskDetails);
+              deleteTask(task);
             }}
           >
             <Eraser size={16} />

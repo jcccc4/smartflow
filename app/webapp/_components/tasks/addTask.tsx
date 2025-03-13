@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { startTransition, useState } from "react";
-import { createTask } from "../../_actions/tasks";
+import { createTasks } from "../../_actions/tasks";
 import { OptimisticValueProp } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 type Props = { setOptimisticTaskState: (action: OptimisticValueProp) => void };
@@ -32,7 +32,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
     });
 
     try {
-      await createTask(task);
+      await createTasks(task);
       setInputValue("");
       setIsFocused(false);
     } catch (error) {
