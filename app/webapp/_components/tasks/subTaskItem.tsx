@@ -2,7 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
-import { Ellipsis, Eraser, GripVertical, ListTree } from "lucide-react";
+import {
+  Check,
+  Ellipsis,
+  Eraser,
+  GripVertical,
+  ListTree,
+  X,
+} from "lucide-react";
 import React, {
   Dispatch,
   SetStateAction,
@@ -24,7 +31,7 @@ interface SubtaskItemProps {
   isSuggested?: boolean;
 }
 
-export default function SubtaskItem({
+export default function suggestSubtasks({
   task,
   setSuggestedTasks,
   setOptimisticTaskState,
@@ -52,9 +59,11 @@ export default function SubtaskItem({
 
     createTasks(task);
   };
-
+  const onCancel = () => {
+    setSuggestedTasks((prev) => prev.filter((t) => t.id !== task.id));
+  };
   return (
-    <div className="w-full flex items-center gap-2 group">
+    <div className="w-full flex items-center gap-2 group ">
       <GripVertical
         className="invisible cursor-pointer group-hover:visible"
         size={16}
@@ -92,11 +101,14 @@ export default function SubtaskItem({
             className="outline-none bg-transparent flex-1 h-full p-3 border-0"
           />
         </div>
-        {
+        <div>
           <Button size="sm" variant="outline" onClick={onAccept}>
-            Accept
+            <Check />
           </Button>
-        }
+          <Button size="sm" variant="outline" onClick={onCancel}>
+            <X />
+          </Button>
+        </div>
       </div>
     </div>
   );

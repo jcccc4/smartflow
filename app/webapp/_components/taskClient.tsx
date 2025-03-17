@@ -7,31 +7,57 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OptimisticValueProp, Task } from "@/lib/types";
-import { Loader2, WandSparkles } from "lucide-react";
-import React, { JSX, startTransition, useOptimistic, useState } from "react";
+import { WandSparkles } from "lucide-react";
+import React, { JSX, useOptimistic, useState } from "react";
 import AddTask from "./tasks/addTask";
 import TaskItem from "./tasks/taskItem";
-import SubtaskItem from "./tasks/subTaskItem";
 import { suggestSubtasks } from "../_actions/ai-tasks";
-import { addSubtask, createTasks } from "../_actions/tasks";
 import { v4 as uuidv4 } from "uuid";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+import SubtaskSuggestionCard from "./tasks/subtaskSuggestionCard";
 
 type Props = { taskList: Task[] };
 interface Suggestion {
   title: string;
   description: string;
 }
+
+const testSample: Task[] = [
+  {
+    id: "testId",
+    parent_task_id: null,
+    title: "Sample Task",
+    description: "Sample Description",
+    due_date: null,
+    done: false,
+    user_id: "pending",
+    created_at: new Date().toISOString(),
+  },
+
+  {
+    id: "testId2",
+    parent_task_id: null,
+    title: "Sample Task 2",
+    description: "Sample Description",
+    due_date: null,
+    done: false,
+    user_id: "pending",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "testId3",
+    parent_task_id: null,
+    title: "Sample Subtask",
+    description: "Sample Description",
+    due_date: null,
+    done: false,
+    user_id: "pending",
+    created_at: new Date().toISOString(),
+  },
+];
 export default function TaskClient({ taskList }: Props): JSX.Element {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [suggestedTasks, setSuggestedTasks] = useState<Task[]>([]);
+  const [suggestedTasks, setSuggestedTasks] = useState<Task[]>(testSample);
   const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
     taskList,
     (currentState: Task[], optimisticValue: OptimisticValueProp) => {
@@ -115,52 +141,6 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
     ));
   }
 
-  function renderSuggestedSubtask(suggestions: Task[]) {
-    return suggestions
-      .filter((task) => task.parent_task_id === selectedTask?.id)
-      .map((task) => (
-        <SubtaskItem
-          key={task.id}
-          task={task}
-          setSuggestedTasks={setSuggestedTasks}
-          setOptimisticTaskState={setOptimisticTaskState}
-        />
-      ));
-  }
-
-  const onAcceptAll = async () => {
-    try {
-      // Create tasks array from suggestions
-      const tasksToCreate = suggestedTasks.map((task) => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || null,
-        parent_task_id: task.parent_task_id,
-        due_date: task.due_date || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        done: false,
-        user_id: "pending",
-      }));
-
-      // Optimistic update
-      startTransition(() => {
-        tasksToCreate.forEach((task) => {
-          setOptimisticTaskState({
-            type: "create",
-            task: task,
-          });
-        });
-      });
-      setSuggestedTasks([]);
-      // Create all tasks in database
-      await createTasks(tasksToCreate);
-
-      // Clear suggestions after successful creation
-    } catch (error) {
-      console.error("Error accepting all tasks:", error);
-    }
-  };
   return (
     <div className="flex h-full">
       <div className="p-4 flex-1 flex flex-col gap-0">
@@ -200,22 +180,18 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
               </div>
             </div>
 
-            <div className="p-4">
+            <div className="flex flex-col p-4">
               <h3 className="font-semibold mb-4">Subtask</h3>
               <div>
                 {renderTaskHierarchy(optimisticTaskState, selectedTask.id)}
               </div>
-              <Card className="w-[350px]">
-                <CardContent>
-                  {suggestedTasks
-                    ? renderSuggestedSubtask(suggestedTasks)
-                    : null}
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={onAcceptAll}>Accept All</Button>
-                </CardFooter>
-              </Card>
+              {suggestedTasks.length !== 0 ? (
+                <SubtaskSuggestionCard
+                  suggestedTasks={suggestedTasks}
+                  setSuggestedTasks={setSuggestedTasks}
+                  setOptimisticTaskState={setOptimisticTaskState}
+                />
+              ) : null}
             </div>
           </div>
         ) : null}
