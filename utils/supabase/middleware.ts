@@ -38,18 +38,25 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (user?.app_metadata?.provider === "google") {
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata.full_name,
+        avatar_url: user.user_metadata.avatar_url,
+        provider: "google",
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    request.nextUrl.pathname !== "/"
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/error";
-    return NextResponse.redirect(url);
+    if (profileError) {
+      console.error("Error updating profile:", profileError);
+    }
   }
+
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:

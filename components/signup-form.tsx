@@ -42,6 +42,7 @@ export function SignUpForm() {
               <input
                 id="email"
                 type="email"
+                name="email"
                 placeholder="Email"
                 className="w-full px-3 py-2 border border-[#ebebeb] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0d6cf2]"
               />

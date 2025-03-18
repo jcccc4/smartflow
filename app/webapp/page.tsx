@@ -1,9 +1,4 @@
-import {
-  Calendar,
-  ChevronDown,
-  Inbox,
-  LayoutGrid,
-} from "lucide-react";
+import { Calendar, ChevronDown, Inbox, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -31,7 +26,23 @@ export default async function TaskApp() {
     .select()
     .order("created_at", { ascending: true })
     .then((result) => ({ data: result.data ?? [] }));
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
+  if (error) {
+    console.error("Error fetching user:", error.message);
+    return;
+  }
+
+  if (user) {
+    console.log("User profile:", user);
+    // Access user properties like:
+    // user.id
+    // user.email
+    // user.user_metadata (if you have any custom metadata)
+  }
   return (
     <SidebarProvider>
       <Sidebar className="border-r-0 group/sidebaR">
@@ -39,7 +50,9 @@ export default async function TaskApp() {
           <div className="p-4 flex items-center gap-3">
             <div className="relative w-8 h-8 rounded-full overflow-hidden">
               <Image
-                src="/placeholder.svg?height=32&width=32"
+                src={
+                  user?.user_metadata?.picture ?? "XXXXXXXXXXXXXXXXXXXXXXXXX"
+                }
                 alt="Profile"
                 width={32}
                 height={32}
@@ -47,8 +60,12 @@ export default async function TaskApp() {
               />
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-medium">Juan Dela Cruz</h3>
-              <p className="text-xs text-muted-foreground">jdcruz@gmail.com</p>
+              <h3 className="text-sm font-medium">
+                {user?.user_metadata?.full_name}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {user?.user_metadata?.email}
+              </p>
             </div>
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </div>
