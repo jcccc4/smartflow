@@ -1,4 +1,10 @@
-import { Calendar, ChevronDown, Inbox, LayoutGrid } from "lucide-react";
+import {
+  Calendar,
+  ChevronDown,
+  CircleUser,
+  Inbox,
+  LayoutGrid,
+} from "lucide-react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -49,15 +55,17 @@ export default async function TaskApp() {
         <SidebarHeader className="p-0">
           <div className="p-4 flex items-center gap-3">
             <div className="relative w-8 h-8 rounded-full overflow-hidden">
-              <Image
-                src={
-                  user?.user_metadata?.picture ?? "XXXXXXXXXXXXXXXXXXXXXXXXX"
-                }
-                alt="Profile"
-                width={32}
-                height={32}
-                className="object-cover"
-              />
+              {user?.user_metadata.picture ? (
+                <Image
+                  src={user?.user_metadata?.picture}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                />
+              ) : (
+                <CircleUser size={32} color="#a6acb4" />
+              )}
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-medium">

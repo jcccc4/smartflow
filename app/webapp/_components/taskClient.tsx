@@ -15,6 +15,11 @@ import { suggestSubtasks } from "../_actions/ai-tasks";
 import { v4 as uuidv4 } from "uuid";
 
 import SubtaskSuggestionCard from "./tasks/subtaskSuggestionCard";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 
 type Props = { taskList: Task[] };
 interface Suggestion {
@@ -142,60 +147,65 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
   }
 
   return (
-    <div className="flex h-full">
-      <div className="p-4 flex-1 flex flex-col gap-0">
-        {renderTaskHierarchy(optimisticTaskState)}
-        <div className="px-6">
-          <AddTask setOptimisticTaskState={setOptimisticTaskState} />
-        </div>
-      </div>
-      {/* Right Sidebar - Task Details */}
-      <div className="border-l border-solid w-1/3 ">
-        {selectedTask ? (
-          <div className="p-0">
-            <header className="p-4 flex justify-between items-center border-b border-[#ebebeb]">
-              <h2 className="text-xl font-semibold">{selectedTask?.title}</h2>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    Improve Issue
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="w-[296px]"
-                    onClick={handleGenerateSubtasks}
-                  >
-                    <WandSparkles size={16} className="mr-2" />
-                    <span>Suggest subtasks</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </header>
-
-            <div className="p-4 border-b border-[#ebebeb]">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-sm">≡</span>
-                <span className="text-sm">Add Description...</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col p-4">
-              <h3 className="font-semibold mb-4">Subtask</h3>
-              <div>
-                {renderTaskHierarchy(optimisticTaskState, selectedTask.id)}
-              </div>
-              {suggestedTasks.length !== 0 ? (
-                <SubtaskSuggestionCard
-                  suggestedTasks={suggestedTasks}
-                  setSuggestedTasks={setSuggestedTasks}
-                  setOptimisticTaskState={setOptimisticTaskState}
-                />
-              ) : null}
-            </div>
+    <ResizablePanelGroup className="flex h-full" direction="horizontal">
+      <ResizablePanel defaultSize={60} minSize={30}>
+        <div className="p-4 flex-1 flex flex-col gap-0">
+          {renderTaskHierarchy(optimisticTaskState)}
+          <div className="px-6">
+            <AddTask setOptimisticTaskState={setOptimisticTaskState} />
           </div>
-        ) : null}
-      </div>
-    </div>
+        </div>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={40} minSize={30}>
+        {/* Right Sidebar - Task Details */}
+        <div className="border-l border-solid  ">
+          {selectedTask ? (
+            <div className="p-0">
+              <header className="p-4 flex justify-between items-center border-b border-[#ebebeb]">
+                <h2 className="text-xl font-semibold">{selectedTask?.title}</h2>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      Improve Issue
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="w-[296px]"
+                      onClick={handleGenerateSubtasks}
+                    >
+                      <WandSparkles size={16} className="mr-2" />
+                      <span>Suggest subtasks</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </header>
+
+              <div className="p-4 border-b border-[#ebebeb]">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-sm">≡</span>
+                  <span className="text-sm">Add Description...</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col p-4">
+                <h3 className="font-semibold mb-4">Subtask</h3>
+                <div>
+                  {renderTaskHierarchy(optimisticTaskState, selectedTask.id)}
+                </div>
+                {suggestedTasks.length !== 0 ? (
+                  <SubtaskSuggestionCard
+                    suggestedTasks={suggestedTasks}
+                    setSuggestedTasks={setSuggestedTasks}
+                    setOptimisticTaskState={setOptimisticTaskState}
+                  />
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
