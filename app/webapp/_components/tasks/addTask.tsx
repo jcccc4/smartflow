@@ -30,15 +30,11 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
         task,
       });
     });
-
+    setInputValue("");
     try {
       await createTasks(task);
-      setInputValue("");
-      setIsFocused(false);
     } catch (error) {
       console.error("Failed to create task:", error);
-      // You might want to handle the error state here
-      // and potentially revert the optimistic update
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -49,7 +45,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
   };
 
   return (
-    <div
+    <div data-testid={"add-task"}
       className={`relative rounded-md flex-1  ${
         isFocused
           ? "outline outline-1 outline-[#EBEBEB] focus-within:outline-slate-500"
@@ -58,6 +54,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
     >
       <Input
         type="text"
+        data-testid="add-task-input"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onFocus={() => setIsFocused(true)}
@@ -96,6 +93,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
             </Button>
             <Button
               size={"sm"}
+              data-testid="add-task-button"
               className={"transition-all duration-200 ease-in-out"}
               disabled={inputValue.length === 0}
               onClick={handleSubmit}

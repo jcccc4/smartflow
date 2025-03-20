@@ -54,20 +54,14 @@ export default function TaskItem({
 
       <div
         key={task.id}
+        data-testid={`${task.id}-task-item`}
         className={`flex flex-1 items-center gap-2 
               transition-all duration-200 ease-in-out
-              ${
-                selectedTask?.id === task.id
-                  ? "rounded-sm bg-[#E7F0FE]"
-                  : ""
-              }`}
+              ${selectedTask?.id === task.id ? "rounded-sm bg-[#E7F0FE]" : ""}`}
         onClick={() => setSelectedTask(task)}
       >
         <div className="px-3 rounded-lg flex flex-1 items-center gap-3">
-          <Checkbox
-            id={String(task.id)}
-            className="border-muted-foreground"
-          />
+          <Checkbox id={String(task.id)} className="border-muted-foreground" />
 
           <Input
             type="text"
@@ -112,17 +106,22 @@ export default function TaskItem({
         </div>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <DropdownMenu data-testid={`${task.id}-dropdown-menu`}>
+        <DropdownMenuTrigger
+          className="outline-none"
+          data-testid={`${task.id}-dropdown-trigger`}
+      
+        >
           <Ellipsis
             size={16}
-            className="invisible cursor-pointer group-hover:visible data-[state=open]:visible"
+            className="opacity-20 cursor-pointer group-hover:opacity-100 data-[state=open]:visible"
           />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          <DropdownMenuItem
-            onClick={() => handleAddSubtask(tasks, task.id)}
-          >
+        <DropdownMenuContent
+          className="w-56"
+          data-testid={`${task.id}-dropdown-menu`}
+        >
+          <DropdownMenuItem onClick={() => handleAddSubtask(tasks, task.id)}>
             <ListTree size={16} />
             <span>Add Subtask</span>
           </DropdownMenuItem>

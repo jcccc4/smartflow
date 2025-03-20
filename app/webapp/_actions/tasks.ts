@@ -110,7 +110,7 @@ export async function updateTask(task: Task) {
   }
 }
 
-export async function deleteTask({ id }: { id: string }) {
+export async function deleteTask({ id }: Task) {
   try {
     const supabase = await createClient();
     const {
