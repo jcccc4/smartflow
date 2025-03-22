@@ -56,3 +56,37 @@ jest.mock("@radix-ui/react-dropdown-menu", () => {
     Portal: ({ children }: { children: React.ReactNode }) => children, // Render normally
   };
 });
+// d:\Workspace\Javascript\smartflow\app\webapp\__tests__\jest.setup.ts
+
+import "@testing-library/jest-dom";
+
+// Mock window methods required for Radix UI
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+window.HTMLElement.prototype.hasPointerCapture = jest.fn();
+window.HTMLElement.prototype.releasePointerCapture = jest.fn();
+
+// Mock ResizeObserver
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+// Mock PointerEvent
+class MockPointerEvent extends Event {
+  button: number;
+  ctrlKey: boolean;
+  pointerType: string;
+
+  constructor(type: string, props: PointerEventInit) {
+    super(type, props);
+    this.button = props.button || 0;
+    this.ctrlKey = props.ctrlKey || false;
+    this.pointerType = props.pointerType || 'mouse';
+  }
+}
+
+window.PointerEvent = MockPointerEvent as any;
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+window.HTMLElement.prototype.releasePointerCapture = jest.fn();
+window.HTMLElement.prototype.hasPointerCapture = jest.fn();

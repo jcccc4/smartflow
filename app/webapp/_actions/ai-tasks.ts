@@ -41,18 +41,20 @@ export async function suggestSubtasks(
 
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
+    console.log("text", text);
     if (!jsonMatch) {
+      console.error("eewerror");
       throw new Error("Invalid response format");
     }
 
     const parsed: Suggestion = JSON.parse(jsonMatch[0]);
-
+    console.log("test", text);
     return { suggestions: parsed.subtasks, error: null };
   } catch (error) {
-    console.error("Error generating subtasks:", error);
+    // console.error("Error generating subtasks:", error);
     return {
       suggestions: null,
-      error: "Failed to generate subtasks. Please try again.",
+      error,
     };
   }
 }

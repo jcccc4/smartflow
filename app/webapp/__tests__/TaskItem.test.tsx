@@ -3,11 +3,9 @@ import "@testing-library/jest-dom";
 import TaskItem from "../_components/tasks/taskItem";
 import * as taskActions from "../_actions/tasks";
 import userEvent from "@testing-library/user-event";
-import { handleKeyDown } from "../_components/tasks/handlers/keyboardEvents";
-jest.mock('../_components/tasks/handlers/keyboardEvents', () => ({
+jest.mock("../_components/tasks/handlers/keyboardEvents", () => ({
   handleKeyDown: jest.fn(),
 }));
-
 
 jest.mock("../_actions/tasks", () => ({
   deleteTask: jest.fn(),

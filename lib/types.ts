@@ -5,7 +5,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export type OptimisticValueProp =
   | {
-      type: "create" | "update" | "delete" | "suggest-subtasks";
+      type: "create" | "update" | "delete";
       task: Task;
     }
   | {

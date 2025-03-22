@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/resizable";
 import TestDropdown from "./tasks/testDropdown";
 
-type Props = { taskList: Task[], children?: React.ReactNode; };
+type Props = { taskList: Task[]; children?: React.ReactNode };
 interface Suggestion {
   title: string;
   description: string;
@@ -70,8 +70,6 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       switch (optimisticValue.type) {
         case "create":
           return [...currentState, optimisticValue.task];
-        case "suggest-subtasks":
-          return [...currentState, optimisticValue.task];
         case "update":
           return currentState.map((task) => {
             if (task.id === optimisticValue.task.id) {
@@ -102,7 +100,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       );
 
       if (error) {
-        throw new Error(error);
+        throw new Error(error.toString()); // Convert error to string
       }
       if (suggestions) {
         const suggestedTaskByAi = suggestions.map((suggestion: Suggestion) => {
@@ -118,7 +116,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
             user_id: "pending", // Inherit from parent task
           } as Task;
         });
-   
+
         setSuggestedTasks(suggestedTaskByAi);
       }
     } catch (error) {
@@ -152,7 +150,12 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       <ResizablePanel defaultSize={60} minSize={30}>
         <div className="p-4 flex-1 flex flex-col gap-0">
           {renderTaskHierarchy(optimisticTaskState)}
-          {<TestDropdown task={testSample[0]} setOptimisticTaskState={setOptimisticTaskState}/>}
+          {
+            <TestDropdown
+              task={testSample[0]}
+              setOptimisticTaskState={setOptimisticTaskState}
+            />
+          }
           <div className="px-6">
             <AddTask setOptimisticTaskState={setOptimisticTaskState} />
           </div>
