@@ -42,13 +42,6 @@ export default async function TaskApp() {
     return;
   }
 
-  if (user) {
-    console.log("User profile:", user);
-    // Access user properties like:
-    // user.id
-    // user.email
-    // user.user_metadata (if you have any custom metadata)
-  }
   return (
     <SidebarProvider>
       <Sidebar className="border-r-0 group/sidebaR">

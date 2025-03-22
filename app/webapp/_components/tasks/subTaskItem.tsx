@@ -52,7 +52,7 @@ export default function suggestSubtasks({
 
   const onAccept = () => {
     setSuggestedTasks((prev) => prev.filter((t) => t.id !== task.id));
-    console.log(task);
+
     startTransition(() => {
       setOptimisticTaskState({ type: "create", task });
     });

@@ -110,11 +110,12 @@ export default function TaskItem({
         <DropdownMenuTrigger
           className="outline-none"
           data-testid={`${task.id}-dropdown-trigger`}
-      
+       
         >
           <Ellipsis
             size={16}
-            className="opacity-20 cursor-pointer group-hover:opacity-100 data-[state=open]:visible"
+
+            // className="invisible cursor-pointer group-hover:visible "
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent

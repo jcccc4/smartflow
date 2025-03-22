@@ -20,8 +20,9 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import TestDropdown from "./tasks/testDropdown";
 
-type Props = { taskList: Task[] };
+type Props = { taskList: Task[], children?: React.ReactNode; };
 interface Suggestion {
   title: string;
   description: string;
@@ -117,7 +118,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
             user_id: "pending", // Inherit from parent task
           } as Task;
         });
-        console.log(suggestedTaskByAi);
+   
         setSuggestedTasks(suggestedTaskByAi);
       }
     } catch (error) {
@@ -151,6 +152,7 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
       <ResizablePanel defaultSize={60} minSize={30}>
         <div className="p-4 flex-1 flex flex-col gap-0">
           {renderTaskHierarchy(optimisticTaskState)}
+          {<TestDropdown task={testSample[0]} setOptimisticTaskState={setOptimisticTaskState}/>}
           <div className="px-6">
             <AddTask setOptimisticTaskState={setOptimisticTaskState} />
           </div>

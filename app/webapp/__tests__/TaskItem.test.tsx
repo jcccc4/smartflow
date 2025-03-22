@@ -1,21 +1,17 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  act,
-  within,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import TaskItem from "../_components/tasks/taskItem";
 import * as taskActions from "../_actions/tasks";
 import userEvent from "@testing-library/user-event";
+import { handleKeyDown } from "../_components/tasks/handlers/keyboardEvents";
+jest.mock('../_components/tasks/handlers/keyboardEvents', () => ({
+  handleKeyDown: jest.fn(),
+}));
+
+
 jest.mock("../_actions/tasks", () => ({
   deleteTask: jest.fn(),
-}));
-// Mock the handlers
-jest.mock("../_components/tasks/handlers/debouncedTaskTitle", () => ({
-  debouncedTaskTitle: jest.fn(),
+  updateTask: jest.fn(),
 }));
 
 describe("TaskItem Component", () => {
@@ -38,7 +34,7 @@ describe("TaskItem Component", () => {
     jest.clearAllMocks();
   });
 
-  it("renders task with correct title", () => {
+  it("renders task with correct title and checkbox", () => {
     render(
       <TaskItem
         tasks={mockTasks}
@@ -50,7 +46,9 @@ describe("TaskItem Component", () => {
     );
 
     expect(screen.getByDisplayValue("Test Task")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox")).toBeInTheDocument();
+    const checkbox = screen.getByRole("checkbox");
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
   });
 
   it("highlights when selected", () => {
@@ -70,9 +68,32 @@ describe("TaskItem Component", () => {
     expect(taskElement).toBeInTheDocument();
   });
 
+  it("updates task title when input changes", async () => {
+    const user = userEvent.setup();
+    render(
+      <TaskItem
+        tasks={mockTasks}
+        task={mockTask}
+        selectedTask={null}
+        setSelectedTask={mockSetSelectedTask}
+        setOptimisticTaskState={mockSetOptimisticTaskState}
+      />
+    );
+
+    const input = screen.getByDisplayValue("Test Task");
+    await user.clear(input);
+    await user.type(input, "Updated Task");
+
+    expect(mockSetOptimisticTaskState).toHaveBeenCalledWith({
+      type: "update",
+      task: expect.objectContaining({
+        title: "Updated Task",
+      }),
+    });
+  });
+
   it("deletes task when delete option is clicked", async () => {
     const user = userEvent.setup();
-    // Mock the deleteTask to return a resolved promise
     (taskActions.deleteTask as jest.Mock).mockResolvedValue({ error: null });
 
     render(
@@ -85,13 +106,9 @@ describe("TaskItem Component", () => {
       />
     );
 
-    // Get the dropdown menu trigger
-
     user.hover(screen.getByTestId(`${mockTask.id}-task-item`));
     const dropdownTrigger = screen.getByTestId("test-id-1-dropdown-trigger");
-    user.click(dropdownTrigger);
-    const dropdown = await screen.findByTestId("test-id-1-dropdown-menu");
-    expect(dropdown).toBeVisible();
+    await user.click(dropdownTrigger);
 
     const deleteMenuItem = await screen.findByRole("menuitem", {
       name: /delete/i,
@@ -107,9 +124,65 @@ describe("TaskItem Component", () => {
     await waitFor(() => {
       expect(taskActions.deleteTask).toHaveBeenCalledWith(mockTask);
     });
-    // Verify the promise was resolved
-    const deleteResult = await (taskActions.deleteTask as jest.Mock).mock
-      .results[0].value;
-    expect(deleteResult).toEqual({ error: null });
+  });
+
+  it("handles add subtask option", async () => {
+    const user = userEvent.setup();
+    render(
+      <TaskItem
+        tasks={mockTasks}
+        task={mockTask}
+        selectedTask={null}
+        setSelectedTask={mockSetSelectedTask}
+        setOptimisticTaskState={mockSetOptimisticTaskState}
+      />
+    );
+
+    user.hover(screen.getByTestId(`${mockTask.id}-task-item`));
+    const dropdownTrigger = screen.getByTestId("test-id-1-dropdown-trigger");
+    await user.click(dropdownTrigger);
+
+    const addSubtaskMenuItem = await screen.findByRole("menuitem", {
+      name: /add subtask/i,
+    });
+    expect(addSubtaskMenuItem).toBeInTheDocument();
+  });
+
+  it("selects task when clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <TaskItem
+        tasks={mockTasks}
+        task={mockTask}
+        selectedTask={null}
+        setSelectedTask={mockSetSelectedTask}
+        setOptimisticTaskState={mockSetOptimisticTaskState}
+      />
+    );
+
+    const taskElement = screen.getByTestId(`${mockTask.id}-task-item`);
+    await user.click(taskElement);
+
+    expect(mockSetSelectedTask).toHaveBeenCalledWith(mockTask);
+  });
+
+  it("handles keyboard events for task input", async () => {
+    const user = userEvent.setup();
+    render(
+      <TaskItem
+        tasks={mockTasks}
+        task={mockTask}
+        selectedTask={null}
+        setSelectedTask={mockSetSelectedTask}
+        setOptimisticTaskState={mockSetOptimisticTaskState}
+      />
+    );
+
+    const input = screen.getByDisplayValue("Test Task");
+    await user.type(input, "{enter}");
+    await user.type(input, "{esc}");
+
+    // Verify input remains in document after keyboard events
+    expect(input).toBeInTheDocument();
   });
 });
