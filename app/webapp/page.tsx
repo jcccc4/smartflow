@@ -23,6 +23,12 @@ import {
 import { createClient } from "@/utils/supabase/server";
 import TaskClient from "./_components/taskClient";
 import { Task } from "@/lib/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default async function TaskApp() {
   const supabase = await createClient();
@@ -44,41 +50,49 @@ export default async function TaskApp() {
 
   return (
     <SidebarProvider>
-      <Sidebar className="border-r-0 group/sidebaR">
+      <Sidebar className="border-r-0 group/sidebar bg-[#e7f0fe]  p-3">
         <SidebarHeader className="p-0">
-          <div className="p-4 flex items-center gap-3">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden">
-              {user?.user_metadata.picture ? (
-                <Image
-                  src={user?.user_metadata?.picture}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  className="object-cover"
-                />
-              ) : (
-                <CircleUser size={32} color="#a6acb4" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium">
-                {user?.user_metadata?.full_name}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {user?.user_metadata?.email}
-              </p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <div>
-            <form action="/auth/signout" method="post">
-              <button className="button block" type="submit">
-                Sign out
-              </button>
-            </form>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-3 pb-3">
+              <div className="relative w-8 h-8 rounded-full flex-shrink-0">
+                {user?.user_metadata.picture ? (
+                  <Image
+                    src={user?.user_metadata?.picture}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    className="object-cover rounded-full"
+                  />
+                ) : (
+                  <CircleUser size={32} color="#a6acb4" />
+                )}
+              </div>
+              <div className="flex-1 flex flex-col">
+                <h3 className="text-sm text-left font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                  {user?.user_metadata?.full_name}
+                </h3>
+                <p className="text-xs text-left text-muted-foreground">
+                  {user?.user_metadata?.email}
+                </p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+              <DropdownMenuItem>
+                <div>
+                  <form action="/auth/signout" method="post">
+                    <button className="button block" type="submit">
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SidebarHeader>
-        <SidebarContent className="bg-[#e7f0fe] p-0">
+        <SidebarContent className=" p-0">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton className="bg-[#b4d1fb]">
