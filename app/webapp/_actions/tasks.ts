@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function createTasks(taskInput: Task | Task[]) {
   const supabase = await createClient();
-
+  console.log(taskInput);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -29,6 +29,7 @@ export async function createTasks(taskInput: Task | Task[]) {
     created_at: new Date().toISOString(),
   }));
 
+  console.log(tasksToCreate[tasksToCreate.length - 1].id + ": test");
   const { data, error } = await supabase
     .from("tasks")
     .insert(tasksToCreate)

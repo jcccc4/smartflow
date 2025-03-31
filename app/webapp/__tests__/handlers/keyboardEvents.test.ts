@@ -58,7 +58,12 @@ describe("handleKeyDown", () => {
         user_id: "user123",
       },
     });
-    expect(createTasks).toHaveBeenCalledWith(mockTask);
+    expect(createTasks).toHaveBeenCalledWith({
+      ...mockTask,
+      id: "mocked-uuid",
+      title: "",
+      user_id: "user123",
+    });
   });
 
   test("handles Backspace key press with empty title", async () => {

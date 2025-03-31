@@ -42,7 +42,7 @@ export default async function TaskApp() {
   }
   return (
     <SidebarProvider>
-      <Sidebar className="border-r-0 group/sidebar bg-[#e7f0fe] p-3">
+      <Sidebar className="border-r-0 group/sidebar  bg-[#e7f0fe] p-3">
         <SidebarHeader className="p-0">
           <ProfileDropdown user={user} />
         </SidebarHeader>
@@ -68,7 +68,6 @@ export default async function TaskApp() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarRail className="group-hover/sidebar:after:bg-border" />
       </Sidebar>
 
       <SidebarInset className="flex flex-col border-r border-[#ebebeb] min-h-svh">
