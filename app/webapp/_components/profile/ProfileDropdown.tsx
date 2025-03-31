@@ -17,7 +17,7 @@ interface ProfileDropdownProps {
 export default function ProfileDropdown({ user }: ProfileDropdownProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-3 pb-3">
+      <DropdownMenuTrigger className="flex items-center gap-3 p-2 mb-2 rounded-md  hover:bg-white data-[state=open]:bg-white data-[state=open]:outline data-[state=open]:outline-1 transition-colors focus:outline-none">
         <div className="relative w-8 h-8 rounded-full flex-shrink-0">
           {user?.user_metadata?.picture ? (
             <Image
@@ -44,16 +44,17 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
         <ChevronDown className="w-4 h-4 text-muted-foreground" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent
+        align="start"
+        className="w-[--radix-dropdown-menu-trigger-width] p-2"
+      >
         <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-        <DropdownMenuItem>
-          <div>
-            <form action="/auth/signout" method="post">
-              <button className="button block" type="submit">
-                Sign out
-              </button>
-            </form>
-          </div>
+        <DropdownMenuItem asChild>
+          <form action="/auth/signout" method="post">
+            <button className="w-full text-left" type="submit">
+              Sign out
+            </button>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
