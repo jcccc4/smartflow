@@ -78,7 +78,7 @@ describe("TaskClient Component", () => {
   });
 
   it("renders task list correctly", () => {
-    render(<TaskClient taskList={mockTasks} />);
+    render(<TaskClient tasks={mockTasks} />);
 
     expect(screen.getByDisplayValue("Parent Task 1")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Parent Task 2")).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe("TaskClient Component", () => {
   });
 
   it("renders task hierarchy correctly", () => {
-    render(<TaskClient taskList={mockTasks} />);
+    render(<TaskClient tasks={mockTasks} />);
 
     const parentTask = screen
       .getByDisplayValue("Parent Task 1")
@@ -101,7 +101,7 @@ describe("TaskClient Component", () => {
 
   it("selects task and shows details in sidebar", async () => {
     const user = userEvent.setup();
-    render(<TaskClient taskList={mockTasks} />);
+    render(<TaskClient tasks={mockTasks} />);
 
     const taskElement = screen.getByTestId("parent-task-1-task-item");
     await user.click(taskElement);
@@ -120,7 +120,7 @@ describe("TaskClient Component", () => {
       .mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API delay
       );
-    render(<TaskClient taskList={mockTasks} />);
+    render(<TaskClient tasks={mockTasks} />);
 
     // Trigger mouseEnter on the task item
     fireEvent.mouseEnter(screen.getByTestId("parent-task-1-task-item"));

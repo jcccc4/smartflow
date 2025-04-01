@@ -77,7 +77,7 @@ export default async function TaskApp() {
           <h1 className="text-xl font-semibold">Today</h1>
         </header>
 
-        <TaskClient taskList={data} />
+        <TaskClient tasks={data} />
       </SidebarInset>
     </SidebarProvider>
   );

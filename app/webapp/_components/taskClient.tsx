@@ -10,7 +10,6 @@ import { OptimisticValueProp, Task } from "@/lib/types";
 import { WandSparkles } from "lucide-react";
 import React, { JSX, useOptimistic, useState } from "react";
 import AddTask from "./tasks/addTask";
-import TaskItem from "./tasks/taskItem";
 import { suggestSubtasks } from "../_actions/ai-tasks";
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,9 +19,9 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import TestDropdown from "./tasks/testDropdown";
+import TaskItemList from "./tasks/taskItemList";
 
-type Props = { taskList: Task[]; children?: React.ReactNode };
+type Props = { tasks: Task[]; children?: React.ReactNode };
 interface Suggestion {
   title: string;
   description: string;
@@ -61,11 +60,11 @@ const testSample: Task[] = [
     created_at: new Date().toISOString(),
   },
 ];
-export default function TaskClient({ taskList }: Props): JSX.Element {
+export default function TaskClient({ tasks }: Props): JSX.Element {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [suggestedTasks, setSuggestedTasks] = useState<Task[]>(testSample);
   const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
-    taskList,
+    tasks,
     (currentState: Task[], optimisticValue: OptimisticValueProp) => {
       switch (optimisticValue.type) {
         case "create":
@@ -124,32 +123,17 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
     }
   };
 
-  function renderTaskHierarchy(tasks: Task[], parentId: string | null = null) {
-    // Get tasks that belong to current parent
-    const currentLevelTasks = tasks.filter(
-      (task) => task.parent_task_id === parentId
-    );
-
-    return currentLevelTasks.map((task) => (
-      <div key={task.id}>
-        <TaskItem
-          tasks={tasks}
-          task={task}
-          selectedTask={selectedTask}
-          setSelectedTask={setSelectedTask}
-          setOptimisticTaskState={setOptimisticTaskState}
-        />
-
-        <div className="pl-4">{renderTaskHierarchy(tasks, task.id)}</div>
-      </div>
-    ));
-  }
-
   return (
     <ResizablePanelGroup className="flex h-full" direction="horizontal">
       <ResizablePanel defaultSize={60} minSize={30}>
         <div className="p-4 flex-1 flex flex-col gap-0">
-          {renderTaskHierarchy(optimisticTaskState)}
+          <TaskItemList
+            tasks={optimisticTaskState}
+            selectedTask={selectedTask}
+            setSelectedTask={setSelectedTask}
+            setOptimisticTaskState={setOptimisticTaskState}
+          />
+
           <div className="px-6">
             <AddTask setOptimisticTaskState={setOptimisticTaskState} />
           </div>
@@ -189,7 +173,13 @@ export default function TaskClient({ taskList }: Props): JSX.Element {
             <div className="flex flex-col p-4">
               <h3 className="font-semibold mb-4">Subtask</h3>
               <div>
-                {renderTaskHierarchy(optimisticTaskState, selectedTask.id)}
+                <TaskItemList
+                  tasks={optimisticTaskState}
+                  parentId={selectedTask.id}
+                  selectedTask={selectedTask}
+                  setSelectedTask={setSelectedTask}
+                  setOptimisticTaskState={setOptimisticTaskState}
+                />
               </div>
               {suggestedTasks.length !== 0 ? (
                 <SubtaskSuggestionCard
