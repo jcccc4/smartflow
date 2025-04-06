@@ -47,11 +47,6 @@ export default function TaskItem({
 
   return (
     <div className="w-full flex items-center gap-2 group">
-      <GripVertical
-        className="invisible cursor-pointer group-hover:visible"
-        size={16}
-      />
-
       <div
         key={task.id}
         data-testid={`${task.id}-task-item`}

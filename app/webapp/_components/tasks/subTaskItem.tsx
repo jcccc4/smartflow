@@ -18,7 +18,7 @@ import React, {
   useState,
 } from "react";
 import useDebounce from "@/hooks/use-debounce";
-import { createTasks, deleteTask } from "../../_actions/tasks";
+import { createTask } from "../../_actions/tasks";
 import { handleKeyDown } from "./handlers/keyboardEvents";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
@@ -57,7 +57,7 @@ export default function suggestSubtasks({
       setOptimisticTaskState({ type: "create", task });
     });
 
-    createTasks(task);
+    createTask(task);
   };
   const onCancel = () => {
     setSuggestedTasks((prev) => prev.filter((t) => t.id !== task.id));

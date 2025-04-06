@@ -5,10 +5,10 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export type OptimisticValueProp =
   | {
-      type: "create" | "update" | "delete";
+      type: "create" | "update" | "delete" | "sort";
       task: Task;
     }
   | {
-      type: "sync";
+      type: "batchCreate" | "batchUpdate" | "batchDelete";
       tasks: Task[];
     };

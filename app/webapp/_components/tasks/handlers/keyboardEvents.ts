@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 
-import { createTasks, deleteTask } from "@/app/webapp/_actions/tasks";
+import { createTask, deleteTask } from "@/app/webapp/_actions/tasks";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import { startTransition } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -44,7 +44,7 @@ export const handleKeyDown = async (
         });
       });
 
-      createTasks(newtask);
+      createTask(newtask);
 
       break;
 

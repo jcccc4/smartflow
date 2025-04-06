@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import React, { startTransition } from "react";
-import SubtaskItem from "./subTaskItem";
-import { createTasks } from "../../_actions/tasks";
+// import SubtaskItem from "./subTaskItem";
+import { createBatchTasks, createTask } from "../../_actions/tasks";
 type SubtaskSuggestionCardProps = {
   suggestedTasks: Task[];
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
@@ -17,12 +17,13 @@ export default function SubtaskSuggestionCard({
 }: SubtaskSuggestionCardProps) {
   function renderSuggestedSubtask(suggestions: Task[]) {
     return suggestions.map((task) => (
-      <SubtaskItem
-        key={task.id}
-        task={task}
-        setSuggestedTasks={setSuggestedTasks}
-        setOptimisticTaskState={setOptimisticTaskState}
-      />
+      <div key={task.id}>fix this</div>
+      // <SubtaskItem
+      //   key={task.id}
+      //   task={task}
+      //   setSuggestedTasks={setSuggestedTasks}
+      //   setOptimisticTaskState={setOptimisticTaskState}
+      // />
     ));
   }
 
@@ -32,7 +33,7 @@ export default function SubtaskSuggestionCard({
   const onAcceptAll = async () => {
     try {
       // Create tasks array from suggestions
-      const tasksToCreate = suggestedTasks.map((task) => ({
+      const tasksToCreate = suggestedTasks.map((task, position) => ({
         id: task.id,
         title: task.title,
         description: task.description || null,
@@ -42,6 +43,7 @@ export default function SubtaskSuggestionCard({
         updated_at: new Date().toISOString(),
         done: false,
         user_id: "pending",
+        position,
       }));
 
       // Optimistic update
@@ -55,7 +57,7 @@ export default function SubtaskSuggestionCard({
       });
       setSuggestedTasks([]);
       // Create all tasks in database
-      await createTasks(tasksToCreate);
+      await createBatchTasks(tasksToCreate);
 
       // Clear suggestions after successful creation
     } catch (error) {

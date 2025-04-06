@@ -7,19 +7,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OptimisticValueProp, Task } from "@/lib/types";
-import { WandSparkles } from "lucide-react";
-import React, { JSX, useOptimistic, useState } from "react";
+import { Loader2, WandSparkles } from "lucide-react";
+import React, { JSX, useEffect, useOptimistic, useState } from "react";
 import AddTask from "./tasks/addTask";
 import { suggestSubtasks } from "../_actions/ai-tasks";
 import { v4 as uuidv4 } from "uuid";
 
-import SubtaskSuggestionCard from "./tasks/subtaskSuggestionCard";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
 import TaskItemList from "./tasks/taskItemList";
+import SubtaskSuggestionCard from "./tasks/subtaskSuggestionCard";
+import { optimisticTaskHandler } from "./tasks/handlers/optimisticStateHandler";
 
 type Props = { tasks: Task[]; children?: React.ReactNode };
 interface Suggestion {
@@ -37,6 +38,7 @@ const testSample: Task[] = [
     done: false,
     user_id: "pending",
     created_at: new Date().toISOString(),
+    position: 0,
   },
 
   {
@@ -48,6 +50,7 @@ const testSample: Task[] = [
     done: false,
     user_id: "pending",
     created_at: new Date().toISOString(),
+    position: 1,
   },
   {
     id: "testId3",
@@ -58,35 +61,17 @@ const testSample: Task[] = [
     done: false,
     user_id: "pending",
     created_at: new Date().toISOString(),
+    position: 2,
   },
 ];
 export default function TaskClient({ tasks }: Props): JSX.Element {
+  const [isClient, setIsClient] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [suggestedTasks, setSuggestedTasks] = useState<Task[]>(testSample);
+
   const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
     tasks,
-    (currentState: Task[], optimisticValue: OptimisticValueProp) => {
-      switch (optimisticValue.type) {
-        case "create":
-          return [...currentState, optimisticValue.task];
-        case "update":
-          return currentState.map((task) => {
-            if (task.id === optimisticValue.task.id) {
-              return {
-                ...task,
-                ...optimisticValue.task,
-              };
-            }
-            return task;
-          });
-        case "delete":
-          return currentState.filter(
-            (task) => task.id !== optimisticValue.task.id
-          );
-        default:
-          return currentState;
-      }
-    }
+    optimisticTaskHandler
   );
 
   const handleGenerateSubtasks = async () => {
@@ -102,19 +87,22 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
         throw new Error(error.toString()); // Convert error to string
       }
       if (suggestions) {
-        const suggestedTaskByAi = suggestions.map((suggestion: Suggestion) => {
-          return {
-            id: uuidv4(),
-            title: suggestion.title,
-            description: suggestion.description,
-            parent_task_id: selectedTask.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            done: false,
-            due_date: null,
-            user_id: "pending", // Inherit from parent task
-          } as Task;
-        });
+        const suggestedTaskByAi = suggestions.map(
+          (suggestion: Suggestion, position) => {
+            return {
+              id: uuidv4(),
+              title: suggestion.title,
+              description: suggestion.description,
+              parent_task_id: selectedTask.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              done: false,
+              due_date: null,
+              user_id: "pending", // Inherit from parent task
+              position,
+            } as Task;
+          }
+        );
 
         setSuggestedTasks(suggestedTaskByAi);
       }
@@ -122,7 +110,16 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
       console.error("Error generating subtasks:", error);
     }
   };
-
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+      </div>
+    );
+  }
   return (
     <ResizablePanelGroup className="flex h-full" direction="horizontal">
       <ResizablePanel defaultSize={60} minSize={30}>
@@ -135,7 +132,10 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
           />
 
           <div className="px-6">
-            <AddTask setOptimisticTaskState={setOptimisticTaskState} />
+            <AddTask
+              tasks={optimisticTaskState}
+              setOptimisticTaskState={setOptimisticTaskState}
+            />
           </div>
         </div>
       </ResizablePanel>

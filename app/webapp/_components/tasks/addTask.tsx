@@ -3,16 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { startTransition, useState } from "react";
-import { createTasks } from "../../_actions/tasks";
-import { OptimisticValueProp } from "@/lib/types";
+import { createTask } from "../../_actions/tasks";
+import { OptimisticValueProp, Task } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
-type Props = { setOptimisticTaskState: (action: OptimisticValueProp) => void };
-export default function AddTask({ setOptimisticTaskState }: Props) {
+type Props = {
+  tasks: Task[];
+  setOptimisticTaskState: (action: OptimisticValueProp) => void;
+};
+export default function AddTask({ tasks, setOptimisticTaskState }: Props) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) return;
+    const position = tasks.filter((task) => task.id === null).length;
     const task = {
       id: uuidv4(),
       title: inputValue,
@@ -22,6 +26,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
       done: false,
       due_date: null,
       user_id: "pending",
+      position,
     };
     startTransition(() => {
       // Wrap optimistic update in startTransition
@@ -32,7 +37,7 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
     });
     setInputValue("");
     try {
-      await createTasks(task);
+      await createTask(task);
     } catch (error) {
       console.error("Failed to create task:", error);
     }
@@ -45,7 +50,8 @@ export default function AddTask({ setOptimisticTaskState }: Props) {
   };
 
   return (
-    <div data-testid={"add-task"}
+    <div
+      data-testid={"add-task"}
       className={`relative rounded-md flex-1  ${
         isFocused
           ? "outline outline-1 outline-[#EBEBEB] focus-within:outline-slate-500"
