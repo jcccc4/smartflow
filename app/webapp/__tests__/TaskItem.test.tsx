@@ -3,7 +3,9 @@ import "@testing-library/jest-dom";
 import TaskItem from "../_components/tasks/taskItem";
 import * as taskActions from "../_actions/tasks";
 import userEvent from "@testing-library/user-event";
-jest.mock("../_components/tasks/handlers/keyboardEvents", () => ({
+import { Task } from "@/lib/types";
+
+jest.mock("../_components/handlers/keyboardEvents", () => ({
   handleKeyDown: jest.fn(),
 }));
 
@@ -22,7 +24,9 @@ describe("TaskItem Component", () => {
     due_date: null,
     user_id: "test-user",
     created_at: new Date().toISOString(),
-  };
+    depth: 0,
+    position: 0,
+  } as Task;
 
   const mockTasks = [mockTask];
   const mockSetSelectedTask = jest.fn();

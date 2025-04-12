@@ -13,9 +13,9 @@ import { Ellipsis, Eraser, GripVertical, ListTree } from "lucide-react";
 import React, { startTransition, useEffect, useState } from "react";
 import useDebounce from "@/hooks/use-debounce";
 import { deleteTask } from "../../_actions/tasks";
-import { handleKeyDown } from "./handlers/keyboardEvents";
-import { handleAddSubtask } from "./handlers/subtaskHandler";
-import { debouncedTaskTitle } from "./handlers/debouncedTaskTitle";
+import { handleKeyDown } from "../handlers/keyboardEvents";
+import { handleAddSubtask } from "../handlers/subtaskHandler";
+import { debouncedTaskTitle } from "../handlers/debouncedTaskTitle";
 
 type Props = {
   tasks: Task[];
@@ -45,6 +45,7 @@ export default function TaskItem({
     }
   }, [debouncedTitle]);
 
+  
   return (
     <div className="w-full flex items-center gap-2 group">
       <div
@@ -96,7 +97,7 @@ export default function TaskItem({
               setSelectedTask(updatedTask);
               setEditedTitle(newText);
             }}
-            className="outline-none bg-transparent flex-1 h-full p-3 border-0"
+            className="outline-none bg-transparent flex-1 h-full p-3 pl-0 border-0"
           />
         </div>
       </div>
@@ -105,19 +106,17 @@ export default function TaskItem({
         <DropdownMenuTrigger
           className="outline-none"
           data-testid={`${task.id}-dropdown-trigger`}
-       
         >
           <Ellipsis
             size={16}
-
-            // className="invisible cursor-pointer group-hover:visible "
+            className="invisible cursor-pointer group-hover:visible "
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-56"
           data-testid={`${task.id}-dropdown-menu`}
         >
-          <DropdownMenuItem onClick={() => handleAddSubtask(tasks, task.id)}>
+          <DropdownMenuItem onClick={() => handleAddSubtask(tasks, task.id,setOptimisticTaskState)}>
             <ListTree size={16} />
             <span>Add Subtask</span>
           </DropdownMenuItem>

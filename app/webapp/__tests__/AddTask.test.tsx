@@ -1,20 +1,19 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import AddTask from '../_components/tasks/addTask';
-import * as taskActions from '../_actions/tasks';
-
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import AddTask from "../_components/tasks/addTask";
+import * as taskActions from "../_actions/tasks";
 
 // Mock the UUID generation to have consistent IDs in tests
-jest.mock('uuid', () => ({
-  v4: () => 'test-uuid'
+jest.mock("uuid", () => ({
+  v4: () => "test-uuid",
 }));
 
 // Mock the server action
-jest.mock('../_actions/tasks', () => ({
-  createTasks: jest.fn()
+jest.mock("../_actions/tasks", () => ({
+  createTask: jest.fn(),
 }));
 
-describe('AddTask Component', () => {
+describe("AddTask Component", () => {
   const mockSetOptimisticTaskState = jest.fn();
 
   beforeEach(() => {
@@ -22,103 +21,108 @@ describe('AddTask Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders add task input with placeholder', () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    expect(screen.getByText('Add task')).toBeInTheDocument();
+  it("renders add task input with placeholder", () => {
+    render(
+      <AddTask
+        tasksLength={0}
+        setOptimisticTaskState={mockSetOptimisticTaskState}
+      />
+    );
+    expect(screen.getByText("Add task")).toBeInTheDocument();
   });
 
-  it('shows buttons when input is focused', () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
+  it("shows buttons when input is focused", () => {
+    render(<AddTask tasksLength={0} setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
     fireEvent.focus(input);
-    
-    expect(screen.getByText('Cancel')).toBeInTheDocument();
-    expect(screen.getByText('Add Task')).toBeInTheDocument();
+
+    expect(screen.getByText("Cancel")).toBeInTheDocument();
+    expect(screen.getByText("Add Task")).toBeInTheDocument();
   });
 
-  it('hides buttons when cancel is clicked', () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
+  it("hides buttons when cancel is clicked", () => {
+    render(<AddTask tasksLength={0} setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
     // Show buttons
     fireEvent.focus(input);
-    
+
     // Click cancel
-    fireEvent.click(screen.getByText('Cancel'));
-    
+    fireEvent.click(screen.getByText("Cancel"));
+
     // Verify buttons are hidden
-    expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
-    expect(screen.queryByText('Add Task')).not.toBeInTheDocument();
+    expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
+    expect(screen.queryByText("Add Task")).not.toBeInTheDocument();
   });
 
-  it('creates a new task when Add Task is clicked', async () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
+  it("creates a new task when Add Task is clicked", async () => {
+    render(<AddTask tasksLength={0} setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
     fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: 'New Test Task' } });
-    fireEvent.click(screen.getByText('Add Task'));
+    fireEvent.change(input, { target: { value: "New Test Task" } });
+    fireEvent.click(screen.getByText("Add Task"));
 
     // Check if optimistic update was called
     expect(mockSetOptimisticTaskState).toHaveBeenCalledWith({
-      type: 'create',
+      type: "create",
       task: expect.objectContaining({
-        id: 'test-uuid',
-        title: 'New Test Task',
+        id: "test-uuid",
+        title: "New Test Task",
         parent_task_id: null,
-        done: false
-      })
+        done: false,
+      }),
     });
 
     // Check if server action was called
-    expect(taskActions.createTasks).toHaveBeenCalledWith(
+    expect(taskActions.createTask).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'test-uuid',
-        title: 'New Test Task',
+        id: "test-uuid",
+        title: "New Test Task",
         parent_task_id: null,
-        done: false
+        done: false,
       })
     );
 
     // Verify input is cleared
-    expect(input).toHaveValue('');
+    expect(input).toHaveValue("");
   });
 
-  it('creates a new task when Enter is pressed', async () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
-    fireEvent.change(input, { target: { value: 'New Test Task' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+  it("creates a new task when Enter is pressed", async () => {
+    render(<AddTask tasksLength={0}  setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "New Test Task" } });
+    fireEvent.keyDown(input, { key: "Enter" });
 
     expect(mockSetOptimisticTaskState).toHaveBeenCalledWith({
-      type: 'create',
+      type: "create",
       task: expect.objectContaining({
-        title: 'New Test Task'
-      })
+        title: "New Test Task",
+      }),
     });
   });
 
-  it('does not create task when input is empty', () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
+  it("does not create task when input is empty", () => {
+    render(<AddTask tasksLength={0} setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
     fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: '' } });
-    fireEvent.click(screen.getByText('Add Task'));
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.click(screen.getByText("Add Task"));
 
     expect(mockSetOptimisticTaskState).not.toHaveBeenCalled();
-    expect(taskActions.createTasks).not.toHaveBeenCalled();
+    expect(taskActions.createTask).not.toHaveBeenCalled();
   });
 
-  it('Add Task button is disabled when input is empty', () => {
-    render(<AddTask setOptimisticTaskState={mockSetOptimisticTaskState} />);
-    const input = screen.getByRole('textbox');
-    
+  it("Add Task button is disabled when input is empty", () => {
+    render(<AddTask tasksLength={0} setOptimisticTaskState={mockSetOptimisticTaskState} />);
+    const input = screen.getByRole("textbox");
+
     fireEvent.focus(input);
-    
-    const addButton = screen.getByText('Add Task');
+
+    const addButton = screen.getByText("Add Task");
     expect(addButton).toBeDisabled();
   });
 });

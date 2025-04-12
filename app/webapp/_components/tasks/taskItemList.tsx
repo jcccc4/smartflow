@@ -1,6 +1,6 @@
 import { OptimisticValueProp, Task } from "@/lib/types";
 import TaskItem from "./taskItem";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -12,26 +12,25 @@ import {
   DragStartEvent,
   DragOverlay,
   DragOverEvent,
+  DragMoveEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "../sort/sortableItem";
 import { updateBatchTasks } from "../../_actions/tasks";
+import { isTaskConnected } from "@/lib/utils";
 interface TaskItemListParams {
   tasks: Task[];
-  parentId?: string | null;
   selectedTask: Task | null;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 }
+export const spacingTrigger = 50;
 
 function TaskItemList({
   tasks,
-  parentId = null,
   selectedTask,
   setSelectedTask,
   setOptimisticTaskState,
@@ -39,9 +38,7 @@ function TaskItemList({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [overId, setOverId] = useState<string | null>(null);
-  const currentLevelTasks = tasks
-    .filter((task) => task.parent_task_id === parentId)
-    .sort((a, b) => a.position - (b.position ?? 0));
+  const [isSubtask, setIsSubtask] = useState<boolean>(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -49,48 +46,81 @@ function TaskItemList({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    const updatedTasks: Task[] = [];
     if (!over) return;
-
+    setActiveId(null);
     setOverId("");
     setIsDragOver(false);
-    const activeTask = tasks.find((task) => task.id === active.id);
-    const overTask = tasks.find((task) => task.id === over.id);
+
+    const activeTask = {
+      ...tasks.find((task) => task.id === active.id),
+    } as Task;
+    const overTask = { ...tasks.find((task) => task.id === over.id) } as Task;
 
     if (!activeTask || !overTask || active.id === over.id) return;
 
-    const sourceLevelTasks = tasks
-      .filter((task) => task.parent_task_id === activeTask.parent_task_id)
-      .sort((a, b) => a.position - (b.position ?? 0));
+    if (
+      !isSubtask &&
+      activeTask.position === overTask.position &&
+      activeTask.parent_task_id === overTask.parent_task_id
+    ) {
+      return;
+    }
+    const oldIndex = tasks.findIndex((task) => task.id === active.id);
+    const newIndex = tasks.findIndex((task) => task.id === over.id);
+    activeTask.position = newIndex;
+    overTask.position = oldIndex;
 
-    const targetLevelTasks = tasks
-      .filter((task) => task.parent_task_id === overTask.parent_task_id)
-      .sort((a, b) => a.position - (b.position ?? 0));
+    if (isSubtask) {
+      activeTask.depth = overTask.depth + 1;
+      activeTask.parent_task_id = overTask.id;
+      activeTask.position = tasks.reduce(
+        (count, task) =>
+          task.parent_task_id === overTask.id && task.id !== activeTask.id
+            ? count + 1
+            : count,
+        0
+      );
 
-    const updatedTasks = calculateNewPositions(
-      activeTask,
-      overTask,
-      sourceLevelTasks,
-      targetLevelTasks
-    );
-    console.log(updatedTasks);
-    // Optimistic update
-    startTransition(() => {
-      setOptimisticTaskState({
-        type: "batchUpdate",
-        tasks: updatedTasks,
+      const siblings = tasks.filter(
+        (task) =>
+          task.parent_task_id === overTask.id && task.id !== activeTask.id
+      );
+
+      siblings.forEach((sibling) => {
+        if (sibling.position >= activeTask.position) {
+          updatedTasks.push({
+            ...sibling,
+            position: sibling.position + 1,
+          });
+        }
       });
-    });
+    } else if (!isSubtask) {
+      activeTask.depth = overTask.depth;
+      activeTask.parent_task_id = overTask.parent_task_id;
+      activeTask.position = overTask.position + 1;
+    }
+    updatedTasks.push(activeTask, overTask);
+    if (updatedTasks.length > 0) {
+      startTransition(() => {
+        setOptimisticTaskState({
+          type: "batchUpdate",
+          tasks: updatedTasks,
+        });
+      });
 
-    // Server update using updateBatchTasks
-    try {
-      const { error } = await updateBatchTasks(updatedTasks);
-      if (error) {
-        throw new Error(error);
+      // Server update using updateBatchTasks
+      try {
+        const { error } = await updateBatchTasks(updatedTasks);
+        if (error) {
+          throw new Error(error);
+        }
+      } catch (error) {
+        console.error("Error updating task positions:", error);
       }
-    } catch (error) {
-      console.error("Error updating task positions:", error);
     }
   }
 
@@ -105,8 +135,6 @@ function TaskItemList({
       setIsDragOver(false);
       return;
     }
-
-    // Don't show indicator if dragging over itself
     if (active.id === over.id) {
       setIsDragOver(false);
       return;
@@ -115,109 +143,63 @@ function TaskItemList({
     setIsDragOver(true);
   }
 
-  function calculateNewPositions(
-    activeTask: Task,
-    overTask: Task,
-    sourceLevelTasks: Task[],
-    targetLevelTasks: Task[]
-  ): Task[] {
-    const updatedTasks: Task[] = [];
-    const isSameLevel = activeTask.parent_task_id === overTask.parent_task_id;
-
-    if (isSameLevel) {
-      const oldIndex = sourceLevelTasks.findIndex(
-        (t) => t.id === activeTask.id
-      );
-      const newIndex = sourceLevelTasks.findIndex((t) => t.id === overTask.id);
-      const reorderedTasks = arrayMove(sourceLevelTasks, oldIndex, newIndex);
-
-      // Ensure position is always a number, defaulting to index if position is null
-      reorderedTasks.forEach((task, index) => {
-        updatedTasks.push({
-          ...task,
-          position: index, // This will always be a number (0 or greater)
-        });
-      });
-    } else {
-      // Source level updates
-      const sourceWithoutActive = sourceLevelTasks.filter(
-        (t) => t.id !== activeTask.id
-      );
-      sourceWithoutActive.forEach((task, index) => {
-        updatedTasks.push({
-          ...task,
-          position: index, // This will always be a number
-        });
-      });
-
-      // Target level updates
-      const targetIndex = targetLevelTasks.findIndex(
-        (t) => t.id === overTask.id
-      );
-      const targetWithActive = [...targetLevelTasks];
-      targetWithActive.splice(targetIndex, 0, {
-        ...activeTask,
-        parent_task_id: overTask.parent_task_id,
-      });
-
-      targetWithActive.forEach((task, index) => {
-        updatedTasks.push({
-          ...task,
-          position: index, // This will always be a number
-          parent_task_id: overTask.parent_task_id,
-        });
-      });
+  function handleDragMove(event: DragMoveEvent) {
+    const { over, delta } = event;
+    if (!over) {
+      setIsDragOver(false);
+      return;
     }
 
-    // Ensure no null positions in final result
-    return updatedTasks.map((task) => ({
-      ...task,
-      position: task.position ?? 0, // Fallback to 0 if position is somehow null
-    }));
+    setIsSubtask(delta.x > spacingTrigger);
   }
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
     >
-      <SortableContext items={currentLevelTasks}>
+      <SortableContext items={tasks}>
         <div className="flex flex-col gap-2">
-          {currentLevelTasks.map((task) => (
-            <div key={task.id} className="flex flex-col">
-              {/* Wrapper for task and its subtasks */}
-              <SortableItem id={task.id}>
-                <div className="relative w-full flex flex-col">
-                  {task.id === overId && isDragOver ? (
-                    <div
-                      className={`absolute top-0 left-0 w-full h-1 bg-red-800`}
-                    ></div>
-                  ) : (
-                    ""
-                  )}
-                  <TaskItem
-                    tasks={tasks}
-                    task={task}
-                    selectedTask={selectedTask}
-                    setSelectedTask={setSelectedTask}
-                    setOptimisticTaskState={setOptimisticTaskState}
-                  />
+          {tasks.map((task: Task) => (
+            <div
+              key={task.id}
+              data-testid={`${task.id}-sortable-item`}
+              style={{
+                marginLeft: `${20 * task.depth}px`,
+              }}
+              className="flex flex-col"
+            >
+              {task.id !== activeId &&
+              !isTaskConnected(tasks, task.id, activeId) ? (
+                <SortableItem id={task.id}>
+                  <div className="relative w-full flex flex-col">
+                    {task.id === overId && isDragOver ? (
+                      <div
+                        style={{
+                          width: `calc(100% - ${
+                            isSubtask ? spacingTrigger : 0
+                          }px)`,
+                        }}
+                        className={`absolute bottom-0 right-0  h-1 bg-red-800`}
+                      ></div>
+                    ) : (
+                      ""
+                    )}
 
-                  {/* Subtasks container */}
-                  <div className="ml-8 mt-2">
-                    <TaskItemList
+                    <TaskItem
                       tasks={tasks}
-                      parentId={task.id}
+                      task={task}
                       selectedTask={selectedTask}
                       setSelectedTask={setSelectedTask}
                       setOptimisticTaskState={setOptimisticTaskState}
                     />
                   </div>
-                </div>
-              </SortableItem>
+                </SortableItem>
+              ) : null}
             </div>
           ))}
         </div>

@@ -1,10 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import TaskClient from "../_components/taskClient";
 import userEvent from "@testing-library/user-event";
@@ -19,6 +13,8 @@ const mockTasks = [
     done: false,
     due_date: null,
     user_id: "test-user",
+    position: 0,
+    depth: 0,
     created_at: new Date().toISOString(),
   },
   {
@@ -29,6 +25,8 @@ const mockTasks = [
     done: false,
     due_date: null,
     user_id: "test-user",
+    position: 0,
+    depth: 1,
     created_at: new Date().toISOString(),
   },
   {
@@ -39,6 +37,8 @@ const mockTasks = [
     done: false,
     due_date: null,
     user_id: "test-user",
+    position: 1,
+    depth: 0,
     created_at: new Date().toISOString(),
   },
   {
@@ -49,18 +49,20 @@ const mockTasks = [
     done: false,
     due_date: null,
     user_id: "test-user",
+    position: 2,
+    depth: 0,
     created_at: new Date().toISOString(),
   },
 ];
 
-// const mockSetOptimisticTaskState = jest.fn();
+const mockSetOptimisticTaskState = jest.fn();
 
-// // 3. Then set up your mock
-// jest.mock("react", () => ({
-//   ...jest.requireActual("react"),
-//   useOptimistic: () => [mockTasks, mockSetOptimisticTaskState],
-// }));
-// Mock the tasks actions
+// 3. Then set up your mock
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useOptimistic: () => [mockTasks, mockSetOptimisticTaskState],
+}));
+
 jest.mock("../_actions/tasks", () => ({
   deleteTask: jest.fn(),
   updateTask: jest.fn(),
@@ -88,15 +90,19 @@ describe("TaskClient Component", () => {
   it("renders task hierarchy correctly", () => {
     render(<TaskClient tasks={mockTasks} />);
 
-    const parentTask = screen
-      .getByDisplayValue("Parent Task 1")
-      .closest('div[class*="flex"]');
-    const subtask = screen
-      .getByDisplayValue("Subtask 1")
-      .closest('div[class*="pl-4"]');
+    const parentContainer = screen.getByTestId("parent-task-1-sortable-item");
 
-    expect(parentTask).toBeInTheDocument();
-    expect(subtask).toBeInTheDocument();
+    const subtaskContainer = screen.getByTestId("subtask-1-sortable-item");
+
+    // Verify elements exist
+    expect(parentContainer).toBeInTheDocument();
+    expect(subtaskContainer).toBeInTheDocument();
+
+    // Check if parent has no margin (depth 0)
+    expect(parentContainer).toHaveStyle({ marginLeft: "0px" });
+
+    // Check if subtask has correct margin (depth 1 * 20px)
+    expect(subtaskContainer).toHaveStyle({ marginLeft: "20px" });
   });
 
   it("selects task and shows details in sidebar", async () => {
@@ -154,6 +160,5 @@ describe("TaskClient Component", () => {
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith(mockTasks[0]);
     });
-    screen.debug();
   });
 });

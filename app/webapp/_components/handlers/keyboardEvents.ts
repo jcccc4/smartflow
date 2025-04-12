@@ -36,7 +36,7 @@ export const handleKeyDown = async (
         title: "",
         user_id: user.id,
       };
-      console.log(newtask);
+
       startTransition(() => {
         setOptimisticTaskState({
           type: "create",

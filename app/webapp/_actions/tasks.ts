@@ -1,6 +1,7 @@
 "use server";
 
 import { Task } from "@/lib/types";
+import { getTaskDepth } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { v4 as uuidv4 } from "uuid";
@@ -16,7 +17,10 @@ export async function createTask(taskInput: Task) {
     throw new Error("User not authenticated");
   }
 
-  const taskToCreate = { ...taskInput, user_id: user.id };
+  const taskToCreate = {
+    ...taskInput,
+    user_id: user.id,
+  };
 
   const { data, error } = await supabase
     .from("tasks")
@@ -73,7 +77,6 @@ export async function deleteTask({ id }: Task) {
     if (!user) {
       throw new Error("User not authenticated");
     }
-
     const { error } = await supabase
       .from("tasks")
       .delete()
@@ -178,84 +181,34 @@ export async function addSubtask(parentTaskId: string) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
 
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-    // First, get the count of existing subtasks for this parent
-    const { data: existingSubtasks, error: countError } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("parent_task_id", parentTaskId)
-      .eq("user_id", user.id);
+    const [{ count }, { data: tasks }] = await Promise.all([
+      supabase
+        .from("tasks")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("parent_task_id", parentTaskId),
+      supabase.from("tasks").select().eq("user_id", user.id),
+    ]);
+    if (!tasks) throw new Error("Task cannot be created without parent task");
 
-    if (countError) throw countError;
-
-    // The position will be the length of existing subtasks
-    const position = existingSubtasks?.length || 0;
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .insert([
-        {
-          id: uuidv4(),
-          title: "",
-          parent_task_id: parentTaskId,
-          done: false,
-          user_id: user.id,
-          position,
-        },
-      ])
-      .select()
-      .single();
+    const { error } = await supabase.from("tasks").insert([
+      {
+        id: uuidv4(),
+        title: "",
+        parent_task_id: parentTaskId,
+        done: false,
+        user_id: user.id,
+        depth: getTaskDepth(tasks, parentTaskId),
+        position: count || 0,
+      },
+    ]);
 
     if (error) throw error;
     revalidatePath("/tasks");
-    return { data, error: null };
   } catch (err) {
     console.error("Error adding subtask: ", err);
-    return {
-      data: null,
-      error: err instanceof Error ? err.message : "An error occurred",
-    };
-  }
-}
-
-export async function updateTaskPositions(tasks: Task[]) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
-    // Prepare the updates with only necessary fields
-    const updates = tasks.map((task) => ({
-      id: task.id,
-      position: task.position,
-      parent_task_id: task.parent_task_id,
-      user_id: user.id,
-    }));
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .upsert(updates, {
-        onConflict: "id",
-        ignoreDuplicates: false,
-      })
-      .select();
-
-    if (error) throw error;
-    revalidatePath("/tasks");
-    return { data, error: null };
-  } catch (err) {
-    console.error("Error updating task positions:", err);
     return {
       data: null,
       error: err instanceof Error ? err.message : "An error occurred",

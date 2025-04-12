@@ -1,6 +1,7 @@
-import { handleKeyDown } from "../../_components/tasks/handlers/keyboardEvents";
+import { handleKeyDown } from "../../_components/handlers/keyboardEvents";
 import { createClient } from "@/utils/supabase/client";
-import { createTasks, deleteTask } from "@/app/webapp/_actions/tasks";
+import { createTask, deleteTask } from "@/app/webapp/_actions/tasks";
+import { Task } from "@/lib/types";
 
 // Mock dependencies
 jest.mock("@/utils/supabase/client");
@@ -21,7 +22,9 @@ describe("handleKeyDown", () => {
     done: false,
     due_date: null,
     parent_task_id: null,
-  };
+    position: 0,
+    depth: 0,
+  } as Task;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -58,7 +61,7 @@ describe("handleKeyDown", () => {
         user_id: "user123",
       },
     });
-    expect(createTasks).toHaveBeenCalledWith({
+    expect(createTask).toHaveBeenCalledWith({
       ...mockTask,
       id: "mocked-uuid",
       title: "",
@@ -137,7 +140,7 @@ describe("handleKeyDown", () => {
 
     expect(consoleSpy).toHaveBeenCalledWith("No user found");
     expect(mockSetOptimisticTaskState).not.toHaveBeenCalled();
-    expect(createTasks).not.toHaveBeenCalled();
+    expect(createTask).not.toHaveBeenCalled();
 
     consoleSpy.mockRestore();
   });

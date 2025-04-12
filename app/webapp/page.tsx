@@ -10,7 +10,6 @@ import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 
 import { createClient } from "@/utils/supabase/server";

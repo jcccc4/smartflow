@@ -1,9 +1,12 @@
 import { addSubtask } from "@/app/webapp/_actions/tasks";
-import { Task } from "@/lib/types";
+import { OptimisticValueProp, Task } from "@/lib/types";
 import { canAddTaskAtLevel } from "@/lib/utils";
-import { v4 as uuidv4 } from "uuid";
 
-export async function handleAddSubtask(tasks: Task[], parentTaskId: string) {
+export async function handleAddSubtask(
+  tasks: Task[],
+  parentTaskId: string,
+  setOptimisticTaskState: (action: OptimisticValueProp) => void
+) {
   if (!canAddTaskAtLevel(tasks, parentTaskId)) {
     alert("Cannot add subtask: Maximum nesting depth reached");
     return;

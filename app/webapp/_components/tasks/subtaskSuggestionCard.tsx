@@ -2,33 +2,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import React, { startTransition } from "react";
-// import SubtaskItem from "./subTaskItem";
-import { createBatchTasks, createTask } from "../../_actions/tasks";
+
+import { createBatchTasks } from "../../_actions/tasks";
+import SubtaskSuggestionList from "./subtaskSuggestionList";
 type SubtaskSuggestionCardProps = {
+  selectedTask: Task;
   suggestedTasks: Task[];
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
+  setSuggestingForTaskId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export default function SubtaskSuggestionCard({
+  selectedTask,
   suggestedTasks,
   setSuggestedTasks,
   setOptimisticTaskState,
+  setSuggestingForTaskId,
 }: SubtaskSuggestionCardProps) {
-  function renderSuggestedSubtask(suggestions: Task[]) {
-    return suggestions.map((task) => (
-      <div key={task.id}>fix this</div>
-      // <SubtaskItem
-      //   key={task.id}
-      //   task={task}
-      //   setSuggestedTasks={setSuggestedTasks}
-      //   setOptimisticTaskState={setOptimisticTaskState}
-      // />
-    ));
-  }
-
   const onCancelAll = () => {
     setSuggestedTasks(() => []);
+    setSuggestingForTaskId(null);
   };
   const onAcceptAll = async () => {
     try {
@@ -43,6 +37,7 @@ export default function SubtaskSuggestionCard({
         updated_at: new Date().toISOString(),
         done: false,
         user_id: "pending",
+        depth: selectedTask.depth + 1,
         position,
       }));
 
@@ -67,7 +62,11 @@ export default function SubtaskSuggestionCard({
   return (
     <Card className="w-full flex-1">
       <CardContent className="px-2">
-        {renderSuggestedSubtask(suggestedTasks)}
+        <SubtaskSuggestionList
+          suggestedTasks={suggestedTasks}
+          setSuggestedTasks={setSuggestedTasks}
+          setOptimisticTaskState={setOptimisticTaskState}
+        />
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button onClick={onCancelAll} variant="outline">

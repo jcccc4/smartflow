@@ -7,16 +7,19 @@ import { createTask } from "../../_actions/tasks";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 type Props = {
-  tasks: Task[];
+  tasksLength: number;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
-export default function AddTask({ tasks, setOptimisticTaskState }: Props) {
+export default function AddTask({
+  tasksLength,
+  setOptimisticTaskState,
+}: Props) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = async () => {
     if (!inputValue.trim()) return;
-    const position = tasks.filter((task) => task.id === null).length;
+
     const task = {
       id: uuidv4(),
       title: inputValue,
@@ -26,7 +29,8 @@ export default function AddTask({ tasks, setOptimisticTaskState }: Props) {
       done: false,
       due_date: null,
       user_id: "pending",
-      position,
+      position: tasksLength,
+      depth: 0,
     };
     startTransition(() => {
       // Wrap optimistic update in startTransition
