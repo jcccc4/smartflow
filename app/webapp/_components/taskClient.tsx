@@ -18,50 +18,10 @@ import TaskDetailView from "./tasks/taskDetailView";
 
 type Props = { tasks: Task[]; children?: React.ReactNode };
 
-const testSample: Task[] = [
-  {
-    id: "testId",
-    parent_task_id: null,
-    title: "Sample Task",
-    description: "Sample Description",
-    due_date: null,
-    done: false,
-    user_id: "pending",
-    created_at: new Date().toISOString(),
-    position: 0,
-    depth: 0,
-  },
-
-  {
-    id: "testId2",
-    parent_task_id: null,
-    title: "Sample Task 2",
-    description: "Sample Description",
-    due_date: null,
-    done: false,
-    user_id: "pending",
-    created_at: new Date().toISOString(),
-    position: 1,
-    depth: 1,
-  },
-  {
-    id: "testId3",
-    parent_task_id: null,
-    title: "Sample Subtask",
-    description: "Sample Description",
-    due_date: null,
-    done: false,
-    user_id: "pending",
-    created_at: new Date().toISOString(),
-    position: 3,
-    depth: 2,
-  },
-];
-
 export default function TaskClient({ tasks }: Props): JSX.Element {
   const [isClient, setIsClient] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [suggestedTasks, setSuggestedTasks] = useState<Task[]>(testSample);
+  const [suggestedTasks, setSuggestedTasks] = useState<Task[]>([]);
   const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
     handleTaskHierarchy(tasks),
     optimisticTaskHandler

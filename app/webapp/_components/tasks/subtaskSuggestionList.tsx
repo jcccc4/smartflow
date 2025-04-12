@@ -22,11 +22,13 @@ import { SortableItem } from "../sort/sortableItem";
 import SubtaskSuggestionItem from "./subtaskSuggestionItem";
 
 type Props = {
+  subtasksLength:number;
   suggestedTasks: Task[];
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 export default function SubtaskSuggestionList({
+  subtasksLength,
   suggestedTasks,
   setSuggestedTasks,
   setOptimisticTaskState,
@@ -88,13 +90,7 @@ export default function SubtaskSuggestionList({
       <SortableContext items={suggestedTasks}>
         <div className="flex flex-col gap-2">
           {suggestedTasks.map((task) => (
-            <div
-              key={task.id}
-              style={{
-                marginLeft: `${20 * task.depth}px`,
-              }}
-              className="flex flex-col"
-            >
+            <div key={task.id} className="flex flex-col">
               {task.id !== activeId &&
               !isTaskConnected(suggestedTasks, task.id, activeId) ? (
                 <SortableItem id={task.id}>
@@ -107,6 +103,7 @@ export default function SubtaskSuggestionList({
                       ""
                     )}
                     <SubtaskSuggestionItem
+                      subtasksLength={subtasksLength}
                       task={task}
                       setSuggestedTasks={setSuggestedTasks}
                       setOptimisticTaskState={setOptimisticTaskState}

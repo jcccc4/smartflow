@@ -1,4 +1,5 @@
 import { Task, OptimisticValueProp } from "@/lib/types";
+import { handleTaskHierarchy } from "@/lib/utils";
 
 export const optimisticTaskHandler = (
   currentState: Task[],
@@ -7,7 +8,7 @@ export const optimisticTaskHandler = (
   switch (optimisticValue.type) {
     // Single Operations
     case "create":
-      return [...currentState, optimisticValue.task];
+      return handleTaskHierarchy([...currentState, optimisticValue.task]);
 
     case "update":
       return currentState.map((task) => {
@@ -25,7 +26,7 @@ export const optimisticTaskHandler = (
 
     // Batch Operations
     case "batchCreate":
-      return [...currentState, ...optimisticValue.tasks];
+      return handleTaskHierarchy([...currentState, ...optimisticValue.tasks]);
 
     case "batchUpdate":
       return currentState.map((task) => {

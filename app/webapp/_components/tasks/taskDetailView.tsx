@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import SubtaskItemList from "./subtaskItemList";
 // Add proper type for props
 interface TaskDetailViewProps {
   selectedTask: Task; // Define Task type based on your data structure
@@ -64,11 +65,10 @@ export default function TaskDetailView({
               description: suggestion.description,
               parent_task_id: selectedTask.id,
               created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
               done: false,
               due_date: null,
               user_id: "pending", // Inherit from parent task
-              depth: 0,
+              depth: selectedTask.depth,
               position,
             } as Task;
           }
@@ -112,7 +112,7 @@ export default function TaskDetailView({
       <div className="flex flex-col p-4">
         <h3 className="font-semibold mb-4">Subtask</h3>
         <div>
-          <TaskItemList
+          <SubtaskItemList
             tasks={handleTaskHierarchy(optimisticTaskState, selectedTask.id)}
             selectedTask={selectedTask}
             setSelectedTask={setSelectedTask}
@@ -122,6 +122,7 @@ export default function TaskDetailView({
         {suggestedTasks.length > 0 &&
           suggestingForTaskId === selectedTask.id && (
             <SubtaskSuggestionCard
+              tasks={optimisticTaskState}
               selectedTask={selectedTask}
               suggestedTasks={suggestedTasks}
               setSuggestedTasks={setSuggestedTasks}

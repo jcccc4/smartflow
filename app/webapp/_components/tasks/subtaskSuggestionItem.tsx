@@ -1,18 +1,48 @@
 import { Input } from "@/components/ui/input";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import { Checkbox } from "@radix-ui/react-checkbox";
-import React from "react";
+import React, { startTransition, useState } from "react";
+import { createTask } from "../../_actions/tasks";
+import { Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 type Props = {
+  subtasksLength: number;
   task: Task;
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 
 export default function SubtaskSuggestionItem({
+  subtasksLength,
   task,
   setSuggestedTasks,
   setOptimisticTaskState,
 }: Props) {
+  const handleAccept = async () => {
+    const subtaskToCreate = {
+      ...task,
+      depth: task.depth + 1,
+      position: subtasksLength,
+    };
+    setSuggestedTasks((tasks) => tasks.filter((t) => t.id !== task.id));
+    startTransition(() => {
+      // Wrap optimistic update in startTransition
+      setOptimisticTaskState({
+        type: "create",
+        task: subtaskToCreate,
+      });
+    });
+
+    try {
+      await createTask(subtaskToCreate);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    }
+  };
+
+  const handleCancel = () => {
+    setSuggestedTasks((tasks) => tasks.filter((t) => t.id !== task.id));
+  };
   return (
     <div className="w-full flex items-center gap-2 group">
       <div
@@ -46,6 +76,24 @@ export default function SubtaskSuggestionItem({
             }}
             className="outline-none bg-transparent flex-1 h-full p-3 pl-0 border-0"
           />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAccept}
+              aria-label="Accept task"
+              variant="outline"
+              size="icon-sm"
+            >
+              <Check />
+            </Button>
+            <Button
+              onClick={handleCancel}
+              aria-label="Cancel task"
+              variant="outline"
+              size="icon-sm"
+            >
+              <X />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
