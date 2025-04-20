@@ -1,4 +1,5 @@
 import { Task, OptimisticValueProp } from "@/lib/types";
+import { handleTaskHierarchy } from "@/lib/utils";
 
 export const optimisticTaskHandler = (
   currentState: Task[],
@@ -28,16 +29,20 @@ export const optimisticTaskHandler = (
       return [...currentState, ...optimisticValue.tasks];
 
     case "batchUpdate":
-      return currentState.map((task) => {
-        const updatedTask = optimisticValue.tasks.find((t) => t.id === task.id);
-        if (updatedTask) {
-          return {
-            ...task,
-            ...updatedTask,
-          };
-        }
-        return task;
-      });
+      return handleTaskHierarchy(
+        currentState.map((task) => {
+          const updatedTask = optimisticValue.tasks.find(
+            (t) => t.id === task.id
+          );
+          if (updatedTask) {
+            return {
+              ...task,
+              ...updatedTask,
+            };
+          }
+          return task;
+        })
+      );
 
     case "batchDelete":
       const deleteIds = new Set(optimisticValue.tasks.map((task) => task.id));

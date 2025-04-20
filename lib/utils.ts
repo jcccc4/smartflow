@@ -24,25 +24,36 @@ export const handleTaskHierarchy = (
     return acc;
   }, []);
 };
+export const getTaskChildren = (tasks: Task[], parentId: string): Task[] => {
+  const children: Task[] = [];
+  
+  // Get immediate children
+  const immediateChildren = tasks.filter(task => task.parent_task_id === parentId);
+  children.push(...immediateChildren);
+  
+  // Recursively get children of children
+  for (const child of immediateChildren) {
+    const grandChildren = getTaskChildren(tasks, child.id);
+    children.push(...grandChildren);
+  }
+  
+  return children;
+};
 
 export const isTaskConnected = (
   tasks: Task[],
-  taskId: string,
+  currentId: string,
   activeId: string | null
 ): boolean => {
-  if (taskId === null || activeId === null) {
+  if (currentId === null || activeId === null) {
     return false;
   }
-  // Check if the task is a descendant of activeId
-  const findParentChain = (currentId: string): boolean => {
-    const task = tasks.find((t) => t.id === currentId);
-    if (!task) return false;
-    if (task.parent_task_id === activeId) return true;
-    if (task.parent_task_id === null) return false;
-    return findParentChain(task.parent_task_id);
-  };
 
-  return findParentChain(taskId);
+  const task = tasks.find((t) => t.id === currentId);
+  if (!task) return false;
+  if (task.parent_task_id === activeId) return true;
+  if (task.parent_task_id === null) return false;
+  return isTaskConnected(tasks, task.parent_task_id, activeId);
 };
 
 export function getTaskDepth(tasks: Task[], taskId: string | null): number {

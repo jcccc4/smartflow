@@ -80,7 +80,7 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
   return (
     <ResizablePanelGroup className="flex h-full" direction="horizontal">
       <ResizablePanel defaultSize={60} minSize={30}>
-        <div className="p-4 flex-1 flex flex-col gap-0">
+        <div className="pt-5 flex-1 flex flex-col gap-0">
           <TaskItemList
             tasks={optimisticTaskState}
             selectedTask={selectedTask}
