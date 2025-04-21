@@ -55,6 +55,13 @@ function reorder(
       depth: parentTask.depth,
       position: parentTask.position + 1,
     };
+    if (
+      updatedActiveTask.parent_task_id === activeTask.parent_task_id &&
+      updatedActiveTask.depth === activeTask.depth &&
+      updatedActiveTask.position === activeTask.position
+    ) {
+      return;
+    }
     const activeTaskChildren = getTaskChildren(
       optimisticTaskState,
       activeTask.id
@@ -104,6 +111,15 @@ function addSubtask(
     depth: parentTask.depth + 1,
     position: 0,
   };
+
+  if (
+    updatedActiveTask.parent_task_id === activeTask.parent_task_id &&
+    updatedActiveTask.depth === activeTask.depth &&
+    updatedActiveTask.position === activeTask.position
+  ) {
+    return;
+  }
+
   const activeTaskChildren = getTaskChildren(
     optimisticTaskState,
     activeTask.id
@@ -111,29 +127,46 @@ function addSubtask(
     ...task,
     depth: task.depth + (parentTask.depth - activeTask.depth) + 1,
   }));
+  if (activeTask.parent_task_id === updatedActiveTask.parent_task_id) {
+    if (activeTask.position === updatedActiveTask.position) return;
 
-  const taskArrayFrom = optimisticTaskState
-    .filter(
-      (task) =>
-        task.parent_task_id === activeTask.parent_task_id &&
-        task.position > activeTask.position
-    )
-    .map((task) => ({
-      ...task,
-      position: task.position - 1,
-    }));
-  const taskArrayTo = optimisticTaskState
-    .filter((task) => task.parent_task_id === parentTask.id)
-    .map((task) => ({
-      ...task,
-      position: task.position + 1,
-    }));
-  updatedTasks.push(
-    updatedActiveTask,
-    ...activeTaskChildren,
-    ...taskArrayFrom,
-    ...taskArrayTo
-  );
+    const itemsToBeSort = optimisticTaskState
+      .filter(
+        (task) => task.parent_task_id === updatedActiveTask.parent_task_id
+      )
+      .map((task) => {
+        if (task.id === updatedActiveTask.id) return { ...updatedActiveTask };
+        return {
+          ...task,
+          position: task.position + 1,
+        };
+      });
+
+    updatedTasks.push(...itemsToBeSort);
+  } else {
+    const taskArrayFrom = optimisticTaskState
+      .filter(
+        (task) =>
+          task.parent_task_id === activeTask.parent_task_id &&
+          task.position > activeTask.position
+      )
+      .map((task) => ({
+        ...task,
+        position: task.position - 1,
+      }));
+    const taskArrayTo = optimisticTaskState
+      .filter((task) => task.parent_task_id === parentTask.id)
+      .map((task) => ({
+        ...task,
+        position: task.position + 1,
+      }));
+    updatedTasks.push(
+      updatedActiveTask,
+      ...activeTaskChildren,
+      ...taskArrayFrom,
+      ...taskArrayTo
+    );
+  }
 }
 export async function handleTaskDragAndDrop(
   instruction: Instruction,

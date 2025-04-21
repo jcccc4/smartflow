@@ -21,6 +21,9 @@ function TaskItemList({
 }: TaskItemListParams) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  if (!optimisticTaskState || !Array.isArray(optimisticTaskState)) {
+    return null;
+  }
   return (
     <div className="flex flex-col ">
       {optimisticTaskState.map((task: Task) => {
