@@ -18,14 +18,14 @@ import { handleAddSubtask } from "../handlers/subtaskHandler";
 import { debouncedTaskTitle } from "../handlers/debouncedTaskTitle";
 
 type Props = {
-  tasks: Task[];
+  optimisticTaskState: Task[];
   selectedTask: Task | null;
   task: Task;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 export default function TaskItem({
-  tasks,
+  optimisticTaskState,
   selectedTask,
   task,
   setSelectedTask,
@@ -119,7 +119,7 @@ export default function TaskItem({
         >
           <DropdownMenuItem
             onClick={() =>
-              handleAddSubtask(tasks, task.id, setOptimisticTaskState)
+              handleAddSubtask(optimisticTaskState, task.id, setOptimisticTaskState)
             }
           >
             <ListTree size={16} />

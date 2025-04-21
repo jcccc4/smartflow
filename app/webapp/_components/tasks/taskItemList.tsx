@@ -1,12 +1,11 @@
 import { OptimisticValueProp, Task } from "@/lib/types";
 import TaskItem from "./taskItem";
-import { startTransition, useState } from "react";
-
 import { SortableItem } from "../sort/sortableItem";
-import { updateBatchTasks } from "../../_actions/tasks";
+import { useState } from "react";
 import { isTaskConnected } from "@/lib/utils";
+
 interface TaskItemListParams {
-  tasks: Task[];
+  optimisticTaskState: Task[];
   selectedTask: Task | null;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
@@ -15,25 +14,29 @@ interface TaskItemListParams {
 export const spacingTrigger = 50;
 
 function TaskItemList({
-  tasks,
+  optimisticTaskState,
   selectedTask,
   setSelectedTask,
   setOptimisticTaskState,
 }: TaskItemListParams) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   return (
     <div className="flex flex-col ">
-      {tasks.map((task: Task) => {
+      {optimisticTaskState.map((task: Task) => {
         return (
           <SortableItem
             data-testid={`${task.id}-sortable-item`}
             key={task.id}
             task={task}
-            tasks={tasks}
+            optimisticTaskState={optimisticTaskState}
             setOptimisticTaskState={setOptimisticTaskState}
+            activeId={activeId}
+            setActiveId={setActiveId}
           >
             <div className="relative w-full flex flex-col ">
               <TaskItem
-                tasks={tasks}
+                optimisticTaskState={optimisticTaskState}
                 task={task}
                 selectedTask={selectedTask}
                 setSelectedTask={setSelectedTask}

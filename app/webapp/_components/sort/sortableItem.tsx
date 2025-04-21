@@ -7,7 +7,7 @@ import {
   dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
-import { cn } from "@/lib/utils";
+import { cn, isTaskConnected } from "@/lib/utils";
 import {
   attachInstruction,
   extractInstruction,
@@ -20,22 +20,27 @@ import { handleTaskDragAndDrop } from "./sort-items";
 export function SortableItem({
   children,
   task,
-  tasks,
+  optimisticTaskState,
   setOptimisticTaskState,
   className,
   style,
+  activeId,
+  setActiveId,
   ...props
 }: {
   task: Task;
-  tasks: Task[];
+  optimisticTaskState: Task[];
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
+  activeId: string | null;
+  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
   const itemRef = useRef(null);
   const dragHandleRef = useRef(null);
   const [instruction, setInstruction] = useState<Instruction | null>(null);
+
   // First, create a reference to store the last valid instruction
   let lastValidInstruction: Instruction | null = null;
 
@@ -64,6 +69,12 @@ export function SortableItem({
         element,
         dragHandle,
         getInitialData: () => ({ details: { ...task } }),
+        onDragStart: () => {
+          setActiveId(task.id);
+        },
+        onDrop: () => {
+          setActiveId(null);
+        },
       }),
       dropTargetForElements({
         element,
@@ -76,7 +87,7 @@ export function SortableItem({
           return attachInstruction(data, {
             input,
             element,
-            currentLevel: task.depth,
+            currentLevel: task.depth + 1,
             indentPerLevel: spacingTrigger,
             mode: "last-in-group",
             block:
@@ -93,7 +104,7 @@ export function SortableItem({
           if (!instruction) return;
           handleTaskDragAndDrop(
             instruction,
-            tasks,
+            optimisticTaskState,
             setOptimisticTaskState,
             args.source.data.details as Task,
             args.self.data.details as Task
@@ -123,13 +134,19 @@ export function SortableItem({
         },
       })
     );
-  }, [JSON.stringify(task), tasks.length]);
+  }, [JSON.stringify(optimisticTaskState)]);
 
   return (
     <div
       ref={itemRef}
       style={{ paddingLeft: task.depth * spacingTrigger }}
-      className={cn("grow flex relative items-center group h-16  ", className)}
+      className={cn(
+        "grow flex relative items-center group h-16  ",
+        (isTaskConnected(optimisticTaskState, task.id, activeId) ||
+          task.id === activeId) &&
+          "invisible h-0",
+        className
+      )}
       {...props}
     >
       <button

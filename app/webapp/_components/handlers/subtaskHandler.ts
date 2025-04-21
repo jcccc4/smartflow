@@ -3,11 +3,11 @@ import { OptimisticValueProp, Task } from "@/lib/types";
 import { canAddTaskAtLevel } from "@/lib/utils";
 
 export async function handleAddSubtask(
-  tasks: Task[],
+  optimisticTaskState: Task[],
   parentTaskId: string,
   setOptimisticTaskState: (action: OptimisticValueProp) => void
 ) {
-  if (!canAddTaskAtLevel(tasks, parentTaskId)) {
+  if (!canAddTaskAtLevel(optimisticTaskState, parentTaskId)) {
     alert("Cannot add subtask: Maximum nesting depth reached");
     return;
   }

@@ -4,14 +4,16 @@ import { updateBatchTasks } from "../../_actions/tasks";
 import { startTransition } from "react";
 import { getTaskChildren } from "@/lib/utils";
 function reorder(
-  tasks: Task[],
+  optimisticTaskState: Task[],
   updatedTasks: Task[],
   activeTask: Task,
   parentTask: Task
 ) {
+  console.log(activeTask);
+  console.log(parentTask);
   if (
     activeTask.parent_task_id === parentTask.parent_task_id &&
-    activeTask.position === parentTask.position
+    activeTask.position === parentTask.position + 1
   ) {
     return;
   }
@@ -22,7 +24,7 @@ function reorder(
     const minPosition = Math.min(activeTask.position, parentTask.position);
     const maxPosition = Math.max(activeTask.position, parentTask.position);
 
-    const itemsToBeSort = tasks
+    const itemsToBeSort = optimisticTaskState
       .filter(
         (task) =>
           task.parent_task_id === parentTask.parent_task_id &&
@@ -44,7 +46,7 @@ function reorder(
               : task.position - 1,
         };
       });
-
+    console.log(itemsToBeSort);
     updatedTasks.push(...itemsToBeSort);
   } else {
     const updatedActiveTask = {
@@ -53,25 +55,25 @@ function reorder(
       depth: parentTask.depth,
       position: parentTask.position + 1,
     };
-    const activeTaskChildren = getTaskChildren(tasks, activeTask.id).map(
-      (task) => ({
-        ...task,
-        depth: task.depth + (parentTask.depth - activeTask.depth),
-      })
-    );
+    const activeTaskChildren = getTaskChildren(
+      optimisticTaskState,
+      activeTask.id
+    ).map((task) => ({
+      ...task,
+      depth: task.depth + (parentTask.depth - activeTask.depth),
+    }));
 
-    const taskArrayFrom = tasks
+    const taskArrayFrom = optimisticTaskState
       .filter(
         (task) =>
           task.parent_task_id === activeTask.parent_task_id &&
-          task.id !== updatedActiveTask.id &&
           task.position > activeTask.position
       )
       .map((task) => ({
         ...task,
         position: task.position - 1,
       }));
-    const taskArrayTo = tasks
+    const taskArrayTo = optimisticTaskState
       .filter(
         (task) =>
           task.parent_task_id === parentTask.parent_task_id &&
@@ -81,7 +83,6 @@ function reorder(
         ...task,
         position: task.position + 1,
       }));
-
     updatedTasks.push(
       updatedActiveTask,
       ...activeTaskChildren,
@@ -90,24 +91,69 @@ function reorder(
     );
   }
 }
+
+function addSubtask(
+  optimisticTaskState: Task[],
+  updatedTasks: Task[],
+  activeTask: Task,
+  parentTask: Task
+) {
+  const updatedActiveTask = {
+    ...activeTask,
+    parent_task_id: parentTask.id,
+    depth: parentTask.depth + 1,
+    position: 0,
+  };
+  const activeTaskChildren = getTaskChildren(
+    optimisticTaskState,
+    activeTask.id
+  ).map((task) => ({
+    ...task,
+    depth: task.depth + (parentTask.depth - activeTask.depth) + 1,
+  }));
+
+  const taskArrayFrom = optimisticTaskState
+    .filter(
+      (task) =>
+        task.parent_task_id === activeTask.parent_task_id &&
+        task.position > activeTask.position
+    )
+    .map((task) => ({
+      ...task,
+      position: task.position - 1,
+    }));
+  const taskArrayTo = optimisticTaskState
+    .filter((task) => task.parent_task_id === parentTask.id)
+    .map((task) => ({
+      ...task,
+      position: task.position + 1,
+    }));
+  updatedTasks.push(
+    updatedActiveTask,
+    ...activeTaskChildren,
+    ...taskArrayFrom,
+    ...taskArrayTo
+  );
+}
 export async function handleTaskDragAndDrop(
   instruction: Instruction,
-  tasks: Task[],
+  optimisticTaskState: Task[],
   setOptimisticTaskState: (action: OptimisticValueProp) => void,
   activeTask: Task,
   overTask: Task
 ) {
   const updatedTasks: Task[] = [];
   if (!overTask) return;
+
   switch (instruction.type) {
     case "reparent":
-      let parentTask: Task = overTask;
+      let parentTask: Task = { ...overTask };
       for (
-        let i = instruction.currentLevel;
+        let i = instruction.currentLevel - 1;
         i > instruction.desiredLevel;
         i--
       ) {
-        const foundParent = tasks.find(
+        const foundParent = optimisticTaskState.find(
           (task) => task.id === parentTask?.parent_task_id
         );
 
@@ -117,14 +163,14 @@ export async function handleTaskDragAndDrop(
         parentTask = foundParent;
       }
 
-      reorder(tasks, updatedTasks, activeTask, parentTask);
+      reorder(optimisticTaskState, updatedTasks, activeTask, parentTask);
       break;
     case "reorder-above":
       // code block
 
       break;
     case "reorder-below":
-      reorder(tasks, updatedTasks, activeTask, overTask);
+      addSubtask(optimisticTaskState, updatedTasks, activeTask, overTask);
       break;
     case "make-child":
       // code block
@@ -133,33 +179,10 @@ export async function handleTaskDragAndDrop(
       return;
   }
 
-  // if (instruction.type === "reorder-above") {
-  // }
-
-  // if (instruction.type === "reorder-below") {
-  // }
-
-  // if (instruction.type === "make-child") {
-  //   const childItems = removeById(tasks, activeTask.id);
-  //   const updatedActiveTask = {
-  //     ...activeTask,
-  //     parent_task_id: overTask.id,
-  //     depth: overTask.depth + 1,
-  //     position: overTask.position + 1,
-  //   };
-  //   const reparentItems = updateTaskPositions(
-  //     tasks,
-  //     overTask.id,
-  //     overTask.position,
-  //     activeTask.id
-  //   );
-  //   consoe.log([...childItems, updatedActiveTask, ...reparentItems]);
-  //   updatedTasks.push(...childItems, updatedActiveTask, ...reparentItems);
-  // }
-
   console.log(updatedTasks);
   console.log("End of Sorting");
   if (updatedTasks.length > 0) {
+    console.log("State before update:", [...optimisticTaskState]);
     startTransition(() => {
       setOptimisticTaskState({
         type: "batchUpdate",

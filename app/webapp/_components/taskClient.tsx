@@ -82,7 +82,7 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
       <ResizablePanel defaultSize={60} minSize={30}>
         <div className="pt-5 flex-1 flex flex-col gap-0">
           <TaskItemList
-            tasks={optimisticTaskState}
+            optimisticTaskState={optimisticTaskState}
             selectedTask={selectedTask}
             setSelectedTask={setSelectedTask}
             setOptimisticTaskState={setOptimisticTaskState}
@@ -91,7 +91,7 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
           <div className="px-6">
             <AddTask
               tasksLength={
-                tasks.filter((task) => task.parent_task_id === null).length
+                optimisticTaskState.filter((task) => task.parent_task_id === null).length
               }
               setOptimisticTaskState={setOptimisticTaskState}
             />
