@@ -9,8 +9,7 @@ function reorder(
   activeTask: Task,
   parentTask: Task
 ) {
-  console.log(activeTask);
-  console.log(parentTask);
+
   if (
     activeTask.parent_task_id === parentTask.parent_task_id &&
     activeTask.position === parentTask.position + 1
@@ -46,7 +45,7 @@ function reorder(
               : task.position - 1,
         };
       });
-    console.log(itemsToBeSort);
+
     updatedTasks.push(...itemsToBeSort);
   } else {
     const updatedActiveTask = {
@@ -86,6 +85,83 @@ function reorder(
           task.parent_task_id === parentTask.parent_task_id &&
           task.position > parentTask.position
       )
+      .map((task) => ({
+        ...task,
+        position: task.position + 1,
+      }));
+    updatedTasks.push(
+      updatedActiveTask,
+      ...activeTaskChildren,
+      ...taskArrayFrom,
+      ...taskArrayTo
+    );
+  }
+}
+
+function reorderAbove(
+  optimisticTaskState: Task[],
+  updatedTasks: Task[],
+  activeTask: Task,
+  parentTask: Task
+) {
+
+  if (
+    activeTask.parent_task_id === parentTask.parent_task_id &&
+    activeTask.position === parentTask.position - 1
+  ) {
+    return;
+  }
+
+  if (activeTask.parent_task_id === parentTask.parent_task_id) {
+    if (activeTask.position === parentTask.position) return;
+
+    const itemsToBeSort = optimisticTaskState
+      .filter(
+        (task) =>
+          task.parent_task_id === parentTask.parent_task_id &&
+          task.position <= activeTask.position
+      )
+      .map((task) => {
+        if (task.id === activeTask.id)
+          return {
+            ...activeTask,
+            position: 0,
+          };
+        return {
+          ...task,
+          position: task.position + 1,
+        };
+      });
+
+    updatedTasks.push(...itemsToBeSort);
+  } else {
+    const updatedActiveTask = {
+      ...activeTask,
+      parent_task_id: null,
+      depth: 0,
+      position: 0,
+    };
+
+    const activeTaskChildren = getTaskChildren(
+      optimisticTaskState,
+      activeTask.id
+    ).map((task) => ({
+      ...task,
+      depth: task.depth - activeTask.depth,
+    }));
+
+    const taskArrayFrom = optimisticTaskState
+      .filter(
+        (task) =>
+          task.parent_task_id === activeTask.parent_task_id &&
+          task.position > activeTask.position
+      )
+      .map((task) => ({
+        ...task,
+        position: task.position - 1,
+      }));
+    const taskArrayTo = optimisticTaskState
+      .filter((task) => task.parent_task_id === null)
       .map((task) => ({
         ...task,
         position: task.position + 1,
@@ -177,6 +253,7 @@ export async function handleTaskDragAndDrop(
 ) {
   const updatedTasks: Task[] = [];
   if (!overTask) return;
+  console.log("Start of Sorting");
 
   switch (instruction.type) {
     case "reparent":
@@ -200,13 +277,10 @@ export async function handleTaskDragAndDrop(
       break;
     case "reorder-above":
       // code block
-
+      reorderAbove(optimisticTaskState, updatedTasks, activeTask, overTask);
       break;
     case "reorder-below":
       addSubtask(optimisticTaskState, updatedTasks, activeTask, overTask);
-      break;
-    case "make-child":
-      // code block
       break;
     case "instruction-blocked":
       return;

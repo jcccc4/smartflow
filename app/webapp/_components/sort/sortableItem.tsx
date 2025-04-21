@@ -1,5 +1,5 @@
 "use client";
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { act, CSSProperties, useEffect, useRef, useState } from "react";
 import { GripVertical } from "lucide-react";
 
 import {
@@ -84,16 +84,23 @@ export function SortableItem({
             details: { ...task },
           };
           // this will 'attach' the instruction to your `data` object
+          const shouldBlockReorderAbove =
+            // Only block reorder-above for first item (depth 0, position 0)
+            task.id === optimisticTaskState[0]?.id ||
+            // Don't block reorder-above of second item if something is being dragged
+            (activeId === optimisticTaskState[0]?.id &&
+              task.position === 1 &&
+              task.depth === 0);
+
           return attachInstruction(data, {
             input,
             element,
             currentLevel: task.depth + 1,
             indentPerLevel: spacingTrigger,
             mode: "last-in-group",
-            block:
-              task.depth === 0 && task.position === 0
-                ? ["make-child"]
-                : ["reorder-above", "make-child"],
+            block: shouldBlockReorderAbove
+              ? ["make-child"]
+              : ["reorder-above", "make-child"],
           });
         },
         onDrop: (args) => {
@@ -115,7 +122,7 @@ export function SortableItem({
           const instruction: Instruction | null = getInstruction(
             args.self.data
           );
-          console.log(instruction ? instruction.type : "test");
+          console.log(instruction?.type);
           if (instruction?.type !== "instruction-blocked") {
             setInstruction(instruction);
           }
@@ -134,7 +141,7 @@ export function SortableItem({
         },
       })
     );
-  }, [JSON.stringify(optimisticTaskState)]);
+  }, [JSON.stringify(optimisticTaskState), activeId, task]);
 
   return (
     <div
