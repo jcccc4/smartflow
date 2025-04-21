@@ -16,7 +16,7 @@ import {
 import { spacingTrigger } from "../tasks/taskItemList";
 import { DropIndicator } from "@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/tree-item";
 import { OptimisticValueProp, Task } from "@/lib/types";
-import { sortItems } from "./sort-items";
+import { handleTaskDragAndDrop } from "./sort-items";
 export function SortableItem({
   children,
   task,
@@ -36,7 +36,24 @@ export function SortableItem({
   const itemRef = useRef(null);
   const dragHandleRef = useRef(null);
   const [instruction, setInstruction] = useState<Instruction | null>(null);
+  // First, create a reference to store the last valid instruction
+  let lastValidInstruction: Instruction | null = null;
 
+  // Modify the extractInstruction function or create a new one that handles the blocked case
+  const getInstruction = (data: any): Instruction | null => {
+    const instruction = extractInstruction(data);
+
+    if (instruction?.type === "instruction-blocked") {
+      // Return the last valid instruction if blocked
+      return lastValidInstruction;
+    }
+
+    // Store the new valid instruction and return it
+    if (instruction) {
+      lastValidInstruction = instruction;
+    }
+    return instruction;
+  };
   useEffect(() => {
     const element = itemRef.current;
     const dragHandle = dragHandleRef.current;
@@ -62,18 +79,19 @@ export function SortableItem({
             currentLevel: task.depth,
             indentPerLevel: spacingTrigger,
             mode: "last-in-group",
+            block:
+              task.depth === 0 && task.position === 0
+                ? ["make-child"]
+                : ["reorder-above", "make-child"],
           });
         },
         onDrop: (args) => {
-          const instruction: Instruction | null = extractInstruction(
+          const instruction: Instruction | null = getInstruction(
             args.self.data
           );
-          if (instruction?.type === "reparent") {
-            console.log(instruction?.desiredLevel);
-          }
 
           if (!instruction) return;
-          sortItems(
+          handleTaskDragAndDrop(
             instruction,
             tasks,
             setOptimisticTaskState,
@@ -83,17 +101,29 @@ export function SortableItem({
           setInstruction(null);
         },
         onDrag: (args) => {
-          const instruction: Instruction | null = extractInstruction(
+          const instruction: Instruction | null = getInstruction(
             args.self.data
           );
-          setInstruction(instruction);
+          console.log(instruction ? instruction.type : "test");
+          if (instruction?.type !== "instruction-blocked") {
+            setInstruction(instruction);
+          }
+        },
+        onDragEnter: (args) => {
+          const instruction: Instruction | null = getInstruction(
+            args.self.data
+          );
+
+          if (instruction?.type !== "instruction-blocked") {
+            setInstruction(instruction);
+          }
         },
         onDragLeave: () => {
           setInstruction(null);
         },
       })
     );
-  }, []);
+  }, [JSON.stringify(task), tasks.length]);
 
   return (
     <div
