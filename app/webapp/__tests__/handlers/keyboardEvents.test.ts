@@ -59,6 +59,7 @@ describe("handleKeyDown", () => {
         id: "mocked-uuid",
         title: "",
         user_id: "user123",
+        position: mockTask.position + 1,
       },
     });
     expect(createTask).toHaveBeenCalledWith({
@@ -66,6 +67,7 @@ describe("handleKeyDown", () => {
       id: "mocked-uuid",
       title: "",
       user_id: "user123",
+      position: mockTask.position + 1,
     });
   });
 

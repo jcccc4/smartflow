@@ -3,13 +3,12 @@ import { Instruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types
 import { updateBatchTasks } from "../../_actions/tasks";
 import { startTransition } from "react";
 import { getTaskChildren } from "@/lib/utils";
-function reorder(
+export function reorder(
   optimisticTaskState: Task[],
   updatedTasks: Task[],
   activeTask: Task,
   parentTask: Task
 ) {
-
   if (
     activeTask.parent_task_id === parentTask.parent_task_id &&
     activeTask.position === parentTask.position + 1
@@ -98,13 +97,12 @@ function reorder(
   }
 }
 
-function reorderAbove(
+export function reorderAbove(
   optimisticTaskState: Task[],
   updatedTasks: Task[],
   activeTask: Task,
   parentTask: Task
 ) {
-
   if (
     activeTask.parent_task_id === parentTask.parent_task_id &&
     activeTask.position === parentTask.position - 1
@@ -175,7 +173,7 @@ function reorderAbove(
   }
 }
 
-function addSubtask(
+export function addSubtask(
   optimisticTaskState: Task[],
   updatedTasks: Task[],
   activeTask: Task,
@@ -286,10 +284,7 @@ export async function handleTaskDragAndDrop(
       return;
   }
 
-  console.log(updatedTasks);
-  console.log("End of Sorting");
   if (updatedTasks.length > 0) {
-    console.log("State before update:", [...optimisticTaskState]);
     startTransition(() => {
       setOptimisticTaskState({
         type: "batchUpdate",
@@ -299,12 +294,11 @@ export async function handleTaskDragAndDrop(
 
     // Server update using updateBatchTasks
     try {
-      const { error } = await updateBatchTasks(updatedTasks);
-      if (error) {
-        throw new Error(error);
-      }
+      await updateBatchTasks(updatedTasks);
+      console.log("Task positions updated successfully:", updatedTasks);
     } catch (error) {
       console.error("Error updating task positions:", error);
+      throw error;
     }
   }
 }

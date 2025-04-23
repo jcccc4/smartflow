@@ -1,5 +1,5 @@
 "use client";
-import React, { act, CSSProperties, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { GripVertical } from "lucide-react";
 
 import {
@@ -157,6 +157,7 @@ export function SortableItem({
       {...props}
     >
       <button
+        data-testid={`drag-handle-${task.id}`}
         ref={dragHandleRef}
         className="invisible  group-hover:visible w-5  "
       >
