@@ -3,7 +3,7 @@ import { WandSparkles } from "lucide-react";
 import React, { useState } from "react";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import SubtaskSuggestionCard from "./subtaskSuggestionCard";
-import TaskItemList from "./taskItemList";
+import SubtaskItemList from "./subtaskItemList";
 import { handleTaskHierarchy } from "@/lib/utils";
 import { suggestSubtasks } from "../../_actions/ai-tasks";
 import { v4 as uuidv4 } from "uuid";
@@ -13,13 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import SubtaskItemList from "./subtaskItemList";
-// Add proper type for props
+
 interface TaskDetailViewProps {
-  selectedTask: Task; // Define Task type based on your data structure
+  activeId: string | null;
+  setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedTask: Task;
   optimisticTaskState: Task[];
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
-  setOptimisticTaskState: (state: OptimisticValueProp) => void; // Replace 'any' with proper type
+  setOptimisticTaskState: (state: OptimisticValueProp) => void;
   suggestedTasks: Task[];
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
@@ -28,6 +29,8 @@ interface Suggestion {
   description: string;
 }
 export default function TaskDetailView({
+  activeId,
+  setActiveId,
   selectedTask,
   optimisticTaskState,
   setSelectedTask,
@@ -113,7 +116,12 @@ export default function TaskDetailView({
         <h3 className="font-semibold mb-4">Subtask</h3>
         <div>
           <SubtaskItemList
-            tasks={handleTaskHierarchy(optimisticTaskState, selectedTask.id)}
+            activeId={activeId}
+            setActiveId={setActiveId}
+            optimisticTaskState={handleTaskHierarchy(
+              optimisticTaskState,
+              selectedTask.id
+            )}
             selectedTask={selectedTask}
             setSelectedTask={setSelectedTask}
             setOptimisticTaskState={setOptimisticTaskState}

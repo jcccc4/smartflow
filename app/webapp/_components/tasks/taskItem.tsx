@@ -18,16 +18,16 @@ import { handleAddSubtask } from "../handlers/subtaskHandler";
 import { debouncedTaskTitle } from "../handlers/debouncedTaskTitle";
 
 type Props = {
-  tasks: Task[];
-  task: Task;
+  optimisticTaskState: Task[];
   selectedTask: Task | null;
+  task: Task;
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 };
 export default function TaskItem({
-  tasks,
-  task,
+  optimisticTaskState,
   selectedTask,
+  task,
   setSelectedTask,
   setOptimisticTaskState,
 }: Props) {
@@ -45,18 +45,19 @@ export default function TaskItem({
     }
   }, [debouncedTitle]);
 
-  
   return (
-    <div className="w-full flex items-center gap-2 group">
+    <div className=" w-full flex items-center">
       <div
         key={task.id}
         data-testid={`${task.id}-task-item`}
-        className={`flex flex-1 items-center gap-2 
-              transition-all duration-200 ease-in-out
-              ${selectedTask?.id === task.id ? "rounded-sm bg-[#E7F0FE]" : ""}`}
+        className={`flex flex-1 items-center gap-2 transition-200 
+          group-hover:bg-[#e7f0fe] ${
+            selectedTask?.id === task.id &&
+            "rounded-sm bg-[#CDDEFE] group-hover:bg-[#CDDEFE] "
+          }`}
         onClick={() => setSelectedTask(task)}
       >
-        <div className="px-3 rounded-lg flex flex-1 items-center gap-3">
+        <div className="px-3 rounded-lg flex flex-1 items-center gap-3 ">
           <Checkbox id={String(task.id)} className="border-muted-foreground" />
 
           <Input
@@ -97,26 +98,30 @@ export default function TaskItem({
               setSelectedTask(updatedTask);
               setEditedTitle(newText);
             }}
-            className="outline-none bg-transparent flex-1 h-full p-3 pl-0 border-0"
+            className="outline-none bg-transparent flex-1 pl-0 border-0 "
           />
         </div>
       </div>
 
       <DropdownMenu data-testid={`${task.id}-dropdown-menu`}>
         <DropdownMenuTrigger
-          className="outline-none"
+          className="outline-none w-5 flex justify-center"
           data-testid={`${task.id}-dropdown-trigger`}
         >
           <Ellipsis
-            size={16}
-            className="invisible cursor-pointer group-hover:visible "
+            size={12}
+            className="invisible cursor-pointer group-hover:visible stroke-[#666] hover:stroke-[#000] transition-colors"
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-56"
           data-testid={`${task.id}-dropdown-menu`}
         >
-          <DropdownMenuItem onClick={() => handleAddSubtask(tasks, task.id,setOptimisticTaskState)}>
+          <DropdownMenuItem
+            onClick={() =>
+              handleAddSubtask(optimisticTaskState, task.id, setOptimisticTaskState)
+            }
+          >
             <ListTree size={16} />
             <span>Add Subtask</span>
           </DropdownMenuItem>

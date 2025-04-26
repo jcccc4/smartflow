@@ -39,7 +39,7 @@ describe("TaskItem Component", () => {
   it("renders task with correct title and checkbox", () => {
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}
@@ -56,7 +56,7 @@ describe("TaskItem Component", () => {
   it("highlights when selected", () => {
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={mockTask}
         setSelectedTask={mockSetSelectedTask}
@@ -66,7 +66,7 @@ describe("TaskItem Component", () => {
 
     const taskElement = screen
       .getByDisplayValue("Test Task")
-      .closest('div[class*="bg-[#E7F0FE]"]');
+      .closest('div[class*="bg-[#CDDEFE]"]');
     expect(taskElement).toBeInTheDocument();
   });
 
@@ -74,7 +74,7 @@ describe("TaskItem Component", () => {
     const user = userEvent.setup();
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}
@@ -100,7 +100,7 @@ describe("TaskItem Component", () => {
 
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}
@@ -132,7 +132,7 @@ describe("TaskItem Component", () => {
     const user = userEvent.setup();
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}
@@ -154,7 +154,7 @@ describe("TaskItem Component", () => {
     const user = userEvent.setup();
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}
@@ -172,7 +172,7 @@ describe("TaskItem Component", () => {
     const user = userEvent.setup();
     render(
       <TaskItem
-        tasks={mockTasks}
+        optimisticTaskState={mockTasks}
         task={mockTask}
         selectedTask={null}
         setSelectedTask={mockSetSelectedTask}

@@ -35,6 +35,7 @@ export const handleKeyDown = async (
         id: uuidv4(),
         title: "",
         user_id: user.id,
+        position: task.position + 1,
       };
 
       startTransition(() => {

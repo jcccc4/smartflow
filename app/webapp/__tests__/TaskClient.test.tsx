@@ -99,10 +99,10 @@ describe("TaskClient Component", () => {
     expect(subtaskContainer).toBeInTheDocument();
 
     // Check if parent has no margin (depth 0)
-    expect(parentContainer).toHaveStyle({ marginLeft: "0px" });
+    expect(parentContainer).toHaveStyle({ paddingLeft: "0px" });
 
-    // Check if subtask has correct margin (depth 1 * 20px)
-    expect(subtaskContainer).toHaveStyle({ marginLeft: "20px" });
+    // Check if subtask has correct margin (depth 1 * 50px)
+    expect(subtaskContainer).toHaveStyle({ paddingLeft: "50px" });
   });
 
   it("selects task and shows details in sidebar", async () => {

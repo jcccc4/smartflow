@@ -47,7 +47,7 @@ export default function SubtaskSuggestionCard({
 
       // Optimistic update
       startTransition(() => {
-        setOptimisticTaskState({
+          setOptimisticTaskState({
           type: "batchCreate",
           tasks: tasksToCreate,
         });
@@ -65,7 +65,7 @@ export default function SubtaskSuggestionCard({
     <Card className="w-full flex-1">
       <CardContent className="px-2">
         <SubtaskSuggestionList
-        subtasksLength={subtasksLength}
+          subtasksLength={subtasksLength}
           suggestedTasks={suggestedTasks}
           setSuggestedTasks={setSuggestedTasks}
           setOptimisticTaskState={setOptimisticTaskState}

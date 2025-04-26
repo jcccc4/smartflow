@@ -81,7 +81,6 @@ export default function SubtaskSuggestionItem({
               onClick={handleAccept}
               aria-label="Accept task"
               variant="outline"
-              size="icon-sm"
             >
               <Check />
             </Button>
@@ -89,7 +88,6 @@ export default function SubtaskSuggestionItem({
               onClick={handleCancel}
               aria-label="Cancel task"
               variant="outline"
-              size="icon-sm"
             >
               <X />
             </Button>

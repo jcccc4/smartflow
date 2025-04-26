@@ -5,11 +5,11 @@ import { startTransition } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 export async function handleAddSubtask(
-  tasks: Task[],
+  optimisticTaskState: Task[],
   parentTaskId: string,
   setOptimisticTaskState: (action: OptimisticValueProp) => void
 ) {
-  if (!canAddTaskAtLevel(tasks, parentTaskId)) {
+  if (!canAddTaskAtLevel(optimisticTaskState, parentTaskId)) {
     alert("Cannot add subtask: Maximum nesting depth reached");
     return;
   }
