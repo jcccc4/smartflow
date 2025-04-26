@@ -8,13 +8,11 @@ interface TaskItemListParams {
   setActiveId: Dispatch<React.SetStateAction<string | null>>;
   optimisticTaskState: Task[];
   selectedTask: Task | null;
-  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setSelectedTask: Dispatch<React.SetStateAction<Task | null>>;
   setOptimisticTaskState: (action: OptimisticValueProp) => void;
 }
 
-export const spacingTrigger = 50;
-
-function TaskItemList({
+function SubtaskItemList({
   activeId,
   setActiveId,
   optimisticTaskState,
@@ -22,11 +20,10 @@ function TaskItemList({
   setSelectedTask,
   setOptimisticTaskState,
 }: TaskItemListParams) {
-  
   if (!optimisticTaskState || !Array.isArray(optimisticTaskState)) {
     return null;
   }
-  
+
   return (
     <div className="flex flex-col ">
       {optimisticTaskState.map((task: Task) => {
@@ -39,6 +36,7 @@ function TaskItemList({
             setOptimisticTaskState={setOptimisticTaskState}
             activeId={activeId}
             setActiveId={setActiveId}
+            activeIdDepth={(selectedTask?.depth ?? 0 )+ 1}
           >
             <div className="relative w-full flex flex-col ">
               <TaskItem
@@ -56,4 +54,4 @@ function TaskItemList({
   );
 }
 
-export default TaskItemList;
+export default SubtaskItemList;

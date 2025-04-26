@@ -26,6 +26,7 @@ export function SortableItem({
   style,
   activeId,
   setActiveId,
+  activeIdDepth = 0,
   ...props
 }: {
   task: Task;
@@ -36,6 +37,7 @@ export function SortableItem({
   style?: CSSProperties;
   activeId: string | null;
   setActiveId: React.Dispatch<React.SetStateAction<string | null>>;
+  activeIdDepth?: number;
 }) {
   const itemRef = useRef(null);
   const dragHandleRef = useRef(null);
@@ -146,9 +148,9 @@ export function SortableItem({
   return (
     <div
       ref={itemRef}
-      style={{ paddingLeft: task.depth * spacingTrigger }}
+      style={{ paddingLeft: (task.depth - activeIdDepth) * spacingTrigger }}
       className={cn(
-        "grow flex relative items-center group h-16  ",
+        "grow flex relative items-center group ",
         (isTaskConnected(optimisticTaskState, task.id, activeId) ||
           task.id === activeId) &&
           "invisible h-0",

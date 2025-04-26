@@ -6,6 +6,7 @@ import React, { startTransition } from "react";
 import { createBatchTasks } from "../../_actions/tasks";
 import SubtaskSuggestionList from "./subtaskSuggestionList";
 type SubtaskSuggestionCardProps = {
+  tasks: Task[];
   selectedTask: Task;
   suggestedTasks: Task[];
   setSuggestedTasks: React.Dispatch<React.SetStateAction<Task[]>>;
@@ -14,12 +15,16 @@ type SubtaskSuggestionCardProps = {
 };
 
 export default function SubtaskSuggestionCard({
+  tasks,
   selectedTask,
   suggestedTasks,
   setSuggestedTasks,
   setOptimisticTaskState,
   setSuggestingForTaskId,
 }: SubtaskSuggestionCardProps) {
+  const subtasksLength = tasks.filter(
+    (task) => task.parent_task_id === selectedTask.id
+  ).length;
   const onCancelAll = () => {
     setSuggestedTasks(() => []);
     setSuggestingForTaskId(null);
@@ -27,27 +32,24 @@ export default function SubtaskSuggestionCard({
   const onAcceptAll = async () => {
     try {
       // Create tasks array from suggestions
-      const tasksToCreate = suggestedTasks.map((task, position) => ({
+      const tasksToCreate = suggestedTasks.map((task, index) => ({
         id: task.id,
         title: task.title,
         description: task.description || null,
         parent_task_id: task.parent_task_id,
         due_date: task.due_date || null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         done: false,
         user_id: "pending",
         depth: selectedTask.depth + 1,
-        position,
+        position: subtasksLength + index,
       }));
 
       // Optimistic update
       startTransition(() => {
-        tasksToCreate.forEach((task) => {
           setOptimisticTaskState({
-            type: "create",
-            task: task,
-          });
+          type: "batchCreate",
+          tasks: tasksToCreate,
         });
       });
       setSuggestedTasks([]);
@@ -63,6 +65,7 @@ export default function SubtaskSuggestionCard({
     <Card className="w-full flex-1">
       <CardContent className="px-2">
         <SubtaskSuggestionList
+          subtasksLength={subtasksLength}
           suggestedTasks={suggestedTasks}
           setSuggestedTasks={setSuggestedTasks}
           setOptimisticTaskState={setOptimisticTaskState}

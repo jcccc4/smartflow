@@ -26,7 +26,7 @@ export const optimisticTaskHandler = (
 
     // Batch Operations
     case "batchCreate":
-      return [...currentState, ...optimisticValue.tasks];
+      return handleTaskHierarchy([...currentState, ...optimisticValue.tasks]);
 
     case "batchUpdate":
       return handleTaskHierarchy(

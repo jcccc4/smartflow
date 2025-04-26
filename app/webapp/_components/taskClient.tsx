@@ -62,6 +62,7 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
   const [isClient, setIsClient] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [suggestedTasks, setSuggestedTasks] = useState<Task[]>(testSample);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [optimisticTaskState, setOptimisticTaskState] = useOptimistic(
     handleTaskHierarchy(tasks),
     optimisticTaskHandler
@@ -82,6 +83,8 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
       <ResizablePanel defaultSize={60} minSize={30}>
         <div className="pt-5 flex-1 flex flex-col gap-0">
           <TaskItemList
+            activeId={activeId}
+            setActiveId={setActiveId}
             optimisticTaskState={optimisticTaskState}
             selectedTask={selectedTask}
             setSelectedTask={setSelectedTask}
@@ -91,7 +94,9 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
           <div className="px-6">
             <AddTask
               tasksLength={
-                optimisticTaskState.filter((task) => task.parent_task_id === null).length
+                optimisticTaskState.filter(
+                  (task) => task.parent_task_id === null
+                ).length
               }
               setOptimisticTaskState={setOptimisticTaskState}
             />
@@ -102,6 +107,8 @@ export default function TaskClient({ tasks }: Props): JSX.Element {
       <ResizablePanel defaultSize={40} minSize={30}>
         {selectedTask ? (
           <TaskDetailView
+            activeId={activeId}
+            setActiveId={setActiveId}
             selectedTask={selectedTask}
             optimisticTaskState={optimisticTaskState}
             setSelectedTask={setSelectedTask}
