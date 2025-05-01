@@ -91,6 +91,36 @@ export async function deleteTask({ id }: Task) {
     return { error: err instanceof Error ? err.message : "An error occurred" };
   }
 }
+export async function updateTaskDescription(taskId: string, description: string) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({ description })
+      .eq("id", taskId)
+      .eq("user_id", user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    revalidatePath("/tasks");
+    return { data, error: null };
+  } catch (err) {
+    console.error("Error updating task description:", err);
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : "An error occurred",
+    };
+  }
+}
 
 // Batch Operations
 export async function createBatchTasks(tasks: Task[]) {

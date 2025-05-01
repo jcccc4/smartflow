@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { WandSparkles } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { OptimisticValueProp, Task } from "@/lib/types";
 import SubtaskSuggestionCard from "./subtaskSuggestionCard";
 import SubtaskItemList from "./subtaskItemList";
 import { handleTaskHierarchy } from "@/lib/utils";
 import { suggestSubtasks } from "../../_actions/ai-tasks";
+import { updateTaskDescription } from "../../_actions/tasks";
 import { v4 as uuidv4 } from "uuid";
+import useDebounce from "@/hooks/use-debounce";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +43,44 @@ export default function TaskDetailView({
   const [suggestingForTaskId, setSuggestingForTaskId] = useState<string | null>(
     null
   );
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState(
+    selectedTask?.description || ""
+  );
+  const debouncedDescription = useDebounce<string>(description, 500);
+  
+  useEffect(() => {
+    // When selectedTask changes, turn off editing mode
+    setIsEditingDescription(false);
+  }, [selectedTask]);
+  
+  useEffect(() => {
+    // Update description in database when debounced value changes, but only if editing
+    const updateDescription = async () => {
+      if (
+        isEditingDescription &&
+        selectedTask &&
+        debouncedDescription !== selectedTask.description
+      ) {
+        await updateTaskDescription(selectedTask.id, debouncedDescription);
+
+        // Update optimistic state
+        const updatedTask = {
+          ...selectedTask,
+          description: debouncedDescription,
+        };
+        startTransition(() => {
+          setOptimisticTaskState({
+            type: "update",
+            task: updatedTask,
+          });
+        });
+        setSelectedTask(updatedTask);
+      }
+    };
+
+    updateDescription();
+  }, [debouncedDescription, isEditingDescription, selectedTask]);
 
   if (!selectedTask) {
     return null;
@@ -106,9 +146,58 @@ export default function TaskDetailView({
       </header>
 
       <div className="p-4 border-b border-[#ebebeb]">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span className="text-sm">≡</span>
-          <span className="text-sm">Add Description...</span>
+        <div
+          className="flex flex-col gap-2"
+          onClick={() => setIsEditingDescription(true)}
+        >
+          {isEditingDescription ? (
+            <>
+              <textarea
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add a description..."
+                rows={4}
+                autoFocus
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingDescription(false);
+                    setDescription(selectedTask.description || "");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingDescription(false);
+                  }}
+                >
+                  Done
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-sm">≡</span>
+                {selectedTask.description ? (
+                  <span className="text-sm text-foreground">
+                    {selectedTask.description}
+                  </span>
+                ) : (
+                  <span className="text-sm">Add Description...</span>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
