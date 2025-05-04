@@ -48,7 +48,7 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
         align="start"
         className="w-[--radix-dropdown-menu-trigger-width] p-2"
       >
-        <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+        <DropdownMenuItem >Profile Settings</DropdownMenuItem>
         <DropdownMenuItem asChild>
           <form action="/auth/signout" method="post">
             <button className="w-full text-left" type="submit">
